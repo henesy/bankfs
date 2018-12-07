@@ -7,7 +7,8 @@
 #include "bankfs.h"
 
 // Global variables -- icky
-Tree *banktree;
+Tree	*banktree;
+Stats	stats;
 
 // Prototypes for 9p handler functions
 static void		fsattach(Req *r);
@@ -55,7 +56,10 @@ main(int argc, char *argv[])
 {
 	char	*mnt, *srv, *addr;
 
-	srv = nil, addr = "tcp!*!3656";
+	srv = nil;
+	// Disable for development, it works
+	// addr = "tcp!*!3656";
+	addr = nil;
 	mnt = "/mnt/bankfs";
 
 	ARGBEGIN{
@@ -70,7 +74,7 @@ main(int argc, char *argv[])
 		break;
 	case 'a':
 		// You can nil-out addr if desired
-		addr = ARGF();
+		addr = EARGF(usage());
 		break;
 	default:
 		usage();
@@ -81,7 +85,9 @@ main(int argc, char *argv[])
 
 	// Setup filesystem
 	banktree = fs.tree = alloctree("sys", "sys", DMDIR|0775, nil);
-	createfile(fs.tree->root, "bank", nil, 0222, nil);
+	createfile(fs.tree->root, "stats", nil, OREADALL, nil);
+	createfile(fs.tree->root, "banks", nil, DMDIR|ORDEXALL, nil);
+	//createfile(fs.tree->root, "accounts", nil, DMDIR|ORDEXALL, nil);
 
 	// Start listening
 	if(addr){
@@ -113,18 +119,23 @@ fsread(Req *r)
 {
 	Fid		*fid;
 	Qid		q;
+	File	*f;
 	char	readmsg[BUFSIZE];
 
 	fid = r->fid;
 	q = fid->qid;
+	f = fid->file;
 
 	switch(q.path){
 	case 0:
 		// TODO
 		break;
 	default:
-		strcpy(readmsg, "invalid read attempt\n");
+		strcpy(readmsg, "fsread: invalid read attempt\n");
 	}
+	
+	if(f != nil)
+		print("File->name: %s ¦ Qid.path: %ulld ¦ Parent->name: %s\n", f->name, q.path, f->parent->name);
 	
 	// Set the read reply string
 	readstr(r, readmsg);
@@ -161,7 +172,7 @@ fswrite(Req *r)
 		// TODO
 		break;
 	default:
-		respond(r, "invalid write attempt");
+		respond(r, "fswrite: invalid write attempt");
 		return;
 	}
 	

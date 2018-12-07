@@ -57,8 +57,11 @@ An example session:
 
 ## References
 
+- [9p(2)](http://man.postnix.us/9front/2/9p)
+- [9pfile(2)](http://man.postnix.us/9front/2/9pfile)
+- [auth(2)](http://man.postnix.us/9front/2/auth)
 - [9p(5)](http://man.postnix.us/9front/5/intro)
 - [simplefs](https://bitbucket.org/henesy/simplefs/src/default/)
-- [semfs](https://bitbucket.org/henesy/9intro/src/default/ch13/semfs/)
+- [asemfs](https://bitbucket.org/henesy/9intro/src/default/ch14/asemfs/)
 - [ctlfs](http://contrib.9front.org/mischief/sys/src/cmd/proc/src/core/ctlfs.c)
 - [lib9p/ramfs](http://mirror.postnix.us/plan9front/sys/src/lib9p/ramfs.c)
