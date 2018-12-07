@@ -6,6 +6,10 @@ Exposes a bank over a 9p connection.
 
 The default port is `tcp/3656`, which happens to be `(int)(√(1337)*100)`.
 
+## Dependencies
+
+None.
+
 ## Build
 
 	mk
