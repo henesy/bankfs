@@ -1,17 +1,13 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
 #include <fcall.h>
 #include <thread.h>
+#include <auth.h>
 #include <9p.h>
-#include "fs.h"
+#include "bankfs.h"
 
-// All active files in the fs
-File9 *files[Nfiles];
-
-// Commands log ;; 4 entries, 1024 wide
-char clog[Ncmd][Cmdwidth];
-
+// Global variables -- icky
+Tree *banktree;
 
 // Prototypes for 9p handler functions
 static void		fsattach(Req *r);
@@ -21,17 +17,26 @@ static void		fswrite(Req *r);
 static char*	fswalk1(Fid * fid, char *name, Qid *qid);
 static char*	fsclone(Fid *fid, Fid *newfid);
 static void		fsstat(Req *r);
+static void		freefid(Fid *fid);
 
+// Prototypes for auth routines
+void becomenone(void);
 
 // Srv structure to handle incoming 9p communications
-static Srv srvfs = 
+Srv fs = 
 {
+	.auth		=	auth9p,
 	.attach		=	fsattach,
 	.read		=	fsread,
 	.write		=	fswrite,
+	.create		=	nil,
+	.remove		=	nil,
 	.walk1		=	fswalk1,
 	.clone		= 	fsclone,
-	.stat		=	fsstat,
+	.stat		=	nil,
+//	.destroyfid	=	freefid,
+	.destroyfid	=	nil,
+	.keyspec	=	"proto=p9any role=server",
 };
 
 
@@ -40,36 +45,13 @@ void
 usage(void)
 {
 	fprint(2, "usage: %s [-D] [-s srv] [-m mnt] [-a address]\n", argv0);
-	threadexitsall("usage");
-}
-
-// Push a message into the log
-void
-logcmd(char* str)
-{
-	int i;
-	for(i = Ncmd-1; i > 0; i--)
-		strcpy(clog[i], clog[i-1]);
-	strncpy(clog[0], str, Cmdwidth);
-}
-
-// Print the log
-char*
-log2str(void)
-{
-	char *str = mallocz(Ncmd * Cmdwidth, 1);
-
-	int i;
-	for(i = Ncmd-1; i >= 0; i--)
-		strncat(str, clog[i], strlen(clog[i]));
-
-	return str;
+	exits("usage");
 }
 
 
 /* A 9p fileserver to serve a bank over an unsecured 9p connection */
 void
-threadmain(int argc, char *argv[])
+main(int argc, char *argv[])
 {
 	char	*mnt, *srv, *addr;
 
@@ -87,28 +69,30 @@ threadmain(int argc, char *argv[])
 		mnt = EARGF(usage());
 		break;
 	case 'a':
-		addr = EARGF(usage());
+		// You can nil-out addr if desired
+		addr = ARGF();
 		break;
 	default:
 		usage();
 	}ARGEND;
 
-	if(argc != 0)
+	if(argc)
 		usage();
 
-	// Setup ctl file
-	File9 ctl = (File9) { (Ref){ 0 }, 0, "ctl" };
-	files[0] = &ctl;
-	
-	// Setup log file
-	File9 log = (File9) { (Ref){ 0 }, 1, "log" };
-	files[1] = &log;
+	// Setup filesystem
+	banktree = fs.tree = alloctree("sys", "sys", DMDIR|0775, nil);
+	createfile(fs.tree->root, "bank", nil, 0222, nil);
 
 	// Start listening
-	threadlistensrv(&srvfs, addr);
-	threadpostmountsrv(&srvfs, srv, mnt, MREPL|MCREATE);
+	if(addr){
+		fprint(2, "Listening on: %s\n", addr);
+		listensrv(&fs, addr);
+	}
+
+	fprint(2, "Serving on: %s and mounting to: %s\n", srv, mnt);
+	postmountsrv(&fs, srv, mnt, MREPL|MCREATE);
 	
-	threadexits(nil);
+	exits(nil);
 }
 
 
@@ -123,57 +107,23 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-// Get directory entries for stat and such -- independent implementation
-static int
-getdirent(int n, Dir *d, void *)
-{
-	d->atime = time(nil);
-	d->mtime = d->atime;
-	d->uid = estrdup9p(getuser());
-	d->gid = estrdup9p(d->uid);
-	d->muid = estrdup9p(d->uid);
-	if(n == -1){
-		d->qid = (Qid) {0, 0, QTDIR};
-		d->mode = 0775;
-		d->name = estrdup9p("/");
-		d->length = 0;
-	}else if(n >= 0 && n < Nfiles && files[n] != nil){
-		d->qid = (Qid) {n, 0, 0};
-		d->mode = 0664;
-		d->name = estrdup9p(files[n]->name);
-	}else
-		return -1;
-	return 0;
-}
-
 // Handle 9p read
 static void
 fsread(Req *r)
 {
 	Fid		*fid;
 	Qid		q;
-	char	readmsg[Ncmd * Cmdwidth];
-	readmsg[0] = '\0';
+	char	readmsg[BUFSIZE];
 
 	fid = r->fid;
 	q = fid->qid;
-	if(q.type & QTDIR){
-		dirread9p(r, getdirent, nil);
-		respond(r, nil);
-		return;
-	}
 
 	switch(q.path){
 	case 0:
-		// ctl file
-		strcpy(readmsg, "ctl file is unreadable.\n");
-		break;
-	case 1:
-		// log file
-		strcpy(readmsg, log2str());
+		// TODO
 		break;
 	default:
-		strcpy(readmsg, "Nothing special in this read.\n");
+		strcpy(readmsg, "invalid read attempt\n");
 	}
 	
 	// Set the read reply string
@@ -189,7 +139,7 @@ fswrite(Req *r)
 {
 	Fid		*fid;
 	Qid		q;
-	char	str[Cmdwidth];
+	char	str[BUFSIZE];
 
 	fid = r->fid;
 	q = fid->qid;
@@ -208,11 +158,10 @@ fswrite(Req *r)
 	
 	switch(q.path){
 	case 0:
-		// ctl file
-		logcmd(str);
+		// TODO
 		break;
 	default:
-		respond(r, "only ctl may be written to");
+		respond(r, "invalid write attempt");
 		return;
 	}
 	
@@ -224,7 +173,7 @@ static char *
 fswalk1(Fid * fid, char *name, Qid *qid)
 {
 	Qid q;
-	int i;
+//	int i;
 
 	q = fid->qid;
 	if(!(q.type && QTDIR)){
@@ -235,39 +184,16 @@ fswalk1(Fid * fid, char *name, Qid *qid)
 			return nil;
 		}
 	}else{
-		for(i = 0; i < Nfiles; i++)
-			if(files[i] && !strcmp(name, files[i]->name)){
-				fid->qid = (Qid){i, 0, 0};
-				incref(files[i]);
-				fid->aux = files[i];
-				*qid = fid->qid;
-				return nil;
-			}
+		// Add walk logic
 	}
 	return "no such directory.";
-}
-
-// Handle 9p stat -- independent implementation
-static void
-fsstat(Req *r)
-{
-	Fid *fid;
-	Qid q;
-
-	fid = r->fid;
-	q = fid->qid;
-	if(q.type & QTDIR)
-		getdirent(-1, &r->d, nil);
-	else
-		getdirent(q.path, &r->d, nil);
-	respond(r, nil);
 }
 
 // Handle 9p clone -- independent implementation
 static char *
 fsclone(Fid *fid, Fid *newfid)
 {
-	File9 *f;
+	File *f;
 	
 	f = fid->aux;
 	if(f != nil)
@@ -275,3 +201,20 @@ fsclone(Fid *fid, Fid *newfid)
 	newfid->aux = f;
 	return nil;
 }
+
+static void
+freefid(Fid *fid)
+{
+	File *f;
+
+	if(fid->qid.type & QTAUTH)
+		authdestroy(fid);
+	else{
+		f = fid->aux;
+		fid->aux = nil;
+		closefile(f);
+	}
+}
+
+/* auth functions */
+

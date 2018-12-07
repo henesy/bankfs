@@ -6,6 +6,6 @@ TARG = bankfs
 
 OFILES = main.$O \
 
-HFILES = fs.h
+HFILES = bankfs.h
 
 </sys/src/cmd/mkone
