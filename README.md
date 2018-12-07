@@ -22,36 +22,36 @@ None.
 
 An example session:
 
-	cpu% mk
-	6c -FTVw main.c
-	6l  -o 6.out main.6
 	cpu% ./6.out
-	cpu% netstat -n | grep -i listen
-	tcp  0    glenda     Listen       564        0          ::
-	tcp  1    glenda     Listen       17019      0          ::
-	tcp  4    glenda     Listen       3656       0          ::
-	cpu% kill 6.out
-	@{echo kill>/proc/1556/note} # 6.out
-	@{echo kill>/proc/1557/note} # 6.out
-	cpu% @{echo kill>/proc/1556/note} # 6.out
-	cpu% @{echo kill>/proc/1557/note} # 6.out
-	cpu% netstat -n | grep -i listen
-	tcp  0    glenda     Listen       564        0          ::
-	tcp  1    glenda     Listen       17019      0          ::
-	cpu% ./6.out
-	cpu% netstat -n | grep -i listen
-	tcp  0    glenda     Listen       564        0          ::
-	tcp  1    glenda     Listen       17019      0          ::
-	tcp  4    glenda     Listen       3656       0          ::
+	Listening on: tcp!*!3656
+	Serving on: <nil> and mounting to: /mnt/bankfs
 	cpu% lc /mnt/bankfs
-	ctl	log
+	bank
+	cpu% cat /mnt/bankfs/bank
+	cat: can't open /mnt/bankfs/bank: '/mnt/bankfs/bank' permission denied
+	cpu% ll /mnt/bankfs
+	---w--w--w- M 415 sys sys 0 Dec  7 01:51 bank
 	cpu% 9fs tcp!10.0.2.15!3656
 	post...
 	cpu% lc /n
 	10.0.2.15!3656/	arrietty/
 	cpu% lc /n/10.0.2.15!3656/
-	ctl	log
-	cpu% 
+	bank
+	cpu% cd /n/10.0.2.15!3656/
+	cpu% lc
+	bank
+	cpu% touch test
+	touch: test: cannot create: 'test' mounted directory forbids creation
+	cpu% netstat -n | grep -i listen
+	tcp  0    glenda     Listen       564        0          ::
+	tcp  1    glenda     Listen       17019      0          ::
+	tcp  8    glenda     Listen       3656       0          ::
+	cpu% kill 6.out
+	cpu% netstat -n | grep -i listen
+	tcp  0    glenda     Listen       564        0          ::
+	tcp  1    glenda     Listen       17019      0          ::
+	cpu% lc /mnt/bankfs
+	ls: /mnt/bankfs: '/mnt/bankfs' clone failed
 
 
 

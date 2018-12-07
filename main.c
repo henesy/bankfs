@@ -212,6 +212,7 @@ freefid(Fid *fid)
 	else{
 		f = fid->aux;
 		fid->aux = nil;
+		// ↓ causes a segfault, naughty naughty
 		closefile(f);
 	}
 }
