@@ -57,6 +57,7 @@ An example session:
 
 ## References
 
+- [ndb(2)](http://man.postnix.us/9front/2/ndb)
 - [9p(2)](http://man.postnix.us/9front/2/9p)
 - [9pfile(2)](http://man.postnix.us/9front/2/9pfile)
 - [auth(2)](http://man.postnix.us/9front/2/auth)

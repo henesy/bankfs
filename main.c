@@ -6,8 +6,11 @@
 #include <9p.h>
 #include "bankfs.h"
 
+
 // Global variables -- icky
 Tree	*banktree;
+Stats	*stats;
+
 
 // Prototypes for 9p handler functions
 static void		fsattach(Req *r);
@@ -20,11 +23,18 @@ static void		fsstat(Req *r);
 static void		freefid(Fid *fid);
 
 // Prototypes for auth routines
-void becomenone(void);
+void	becomenone(void);
 
 // Prototypes for utilities
 char*	readfile(Fid*);
 char*	writefile(Fid*, char*);
+char*	uitoa(uint);
+char*	itoa(int);
+
+// Prototypes for bank calls
+void	initbank(File*, char*, uint, char**);
+void	initacct(File*, char*, char*, char*, uint, Account*);
+
 
 // Srv structure to handle incoming 9p communications
 Srv fs = 
@@ -57,27 +67,45 @@ usage(void)
 void
 main(int argc, char *argv[])
 {
-	char	*mnt, *srv, *addr;
+	char	*mnt, *srv, *addr, *ndb, *hostuser, *hostgrp;
 
-	srv = nil;
-	// Disable for development, it works
-	//addr = "tcp!*!3656";
-	addr = nil;
-	mnt = "/mnt/bankfs";
+	ndb			=	nil;
+	srv			=	nil;
+	hostuser	=	"glenda";
+	hostgrp		=	"sys";
+	mnt			=	"/mnt/bankfs";
+	// Disable for development, listener works
+	addr		=	nil;
+	//addr		=	"tcp!*!3656";
 
 	ARGBEGIN{
 	case 'D':
+		// Debug chatter
 		chatty9p++;
 		break;
 	case 's':
+		// #s name to post
 		srv = EARGF(usage());
 		break;
 	case 'm':
+		// Directory path to mount to
 		mnt = EARGF(usage());
 		break;
 	case 'a':
-		// You can nil-out addr if desired
+		// Dial string address to listen on
 		addr = EARGF(usage());
+		break;
+	case 'd':
+		// .ndb file to load from (if any)
+		ndb = EARGF(usage());
+		break;
+	case 'u':
+		// User to root as
+		hostuser = EARGF(usage());
+		break;
+	case 'g':
+		// Group to root as
+		hostgrp = EARGF(usage());
 		break;
 	default:
 		usage();
@@ -87,19 +115,35 @@ main(int argc, char *argv[])
 		usage();
 
 	// Setup filesystem
-	Stats	*stats = mallocz(sizeof(Stats), 1);
-	*stats = (Stats){0, 0, 0};
+	stats = mallocz(sizeof(Stats), 1);
+	Stats s = {
+		.nbanks = 0,	// We are bank #0
+		.naccts = 0,	// One master reserve account #0
+		.ntrans = 0,	// No transactions initially
+	};
+	*stats = s;
 
-	banktree = fs.tree = alloctree("glenda", "sys", DMDIR|0775, nil);
+	// see: 9pfile(2)
+	banktree = fs.tree = alloctree(hostuser, hostgrp, DMDIR|0775, nil);
 
-	File *statf = createfile(fs.tree->root, "stats", nil, OREADALL, nil);
-	statf->aux = stats;
-	
+	createfile(fs.tree->root, "stats", nil, OREADALL, stats);
+
 	createfile(fs.tree->root, "ctl", nil, 0200, nil);
 
-	createfile(fs.tree->root, "banks", nil, DMDIR|ORDEXALL, nil);
+	File *banksf = createfile(fs.tree->root, "banks", nil, DMDIR|ORDEXALL, nil);
 
-	//createfile(fs.tree->root, "accounts", nil, DMDIR|ORDEXALL, nil);
+	// Load from database here
+
+	if(ndb){
+		// We are loading from database
+		// TODO
+	}else{
+		// We are not loading from database -- initialize
+		// Add root as /banks/0
+		File *bankroot = createfile(banksf, "0", hostuser, DMDIR|ORDEXALL, nil);
+		char *rname[] = {"reserve"};
+		initbank(bankroot, hostuser, 1, rname);
+	}
 
 	// Start listening
 	if(addr){
@@ -264,7 +308,7 @@ readfile(Fid* fid)
 		
 	}else{
 		// Return catch-all
-		snprint(buf, BUFSIZE, "err: readfile says no ☹\n");
+		snprint(buf, BUFSIZE, "err: readfile says no ☹");
 	}
 	
 	return buf;
@@ -284,7 +328,7 @@ writefile(Fid* fid, char* str)
 
 	if(cmp(name, "ctl") && pisroot(f)){
 		// Do something with the master control file commands
-		fprint(2, "☺: %s", str);
+		fprint(2, "user sent: %s", str);
 		
 		// TODO
 		
@@ -298,3 +342,87 @@ writefile(Fid* fid, char* str)
 	return buf;
 }
 
+// Convert a signed integer to a string
+char*
+itoa(int n)
+{
+	char buf[BUFSIZE];
+	snprint(buf, BUFSIZE, "%d", n);
+	return buf;
+}
+
+// Convert an unsigned integer to a string
+char*
+uitoa(uint n)
+{
+	char buf[BUFSIZE];
+	snprint(buf, BUFSIZE, "%ud", n);
+	return buf;
+}
+
+
+/* bank functions */
+
+/* Bankfs layout:
+
+	/
+		ctl
+		stats
+		banks/
+						0/
+							accounts/
+								0/
+									name
+									balance
+								n…/
+							transactions
+							ctl
+							stats
+						n…/
+*/
+
+// Initialize a bank filetree -- acctnames must be size naccts -- requires an existing directory, root
+void
+initbank(File* root, char *user, uint naccts, char **acctnames)
+{
+	// Allocate bank
+	Bank		*bank 	= mallocz(sizeof(Bank), 1);
+	Transaction *trans	= mallocz(MAXTRANS * sizeof(Transaction), 1);
+	Stats		*s		= mallocz(sizeof(Stats), 1);
+	Account		*accts	= malloc(MAXACCTS * sizeof(Account));
+	bank->transactions = trans;
+	bank->stats = s;
+	bank->accounts = accts;
+
+	// Create transactions & ctl files
+
+	root->aux = bank;
+	createfile(root, "transactions", user, OREADALL, trans);
+	createfile(root, "stats", user, OREADALL, stats);
+	createfile(root, "ctl", user, 0200, nil);
+	// Makes accounts/ folder
+	File *acctf = createfile(root, "accounts", user, DMDIR|ORDEXALL, accts);
+
+	int i;
+	for(i = 0; i < naccts; i++){
+		// Make accounts/N for each desired
+		
+		// TODO -- might truncate, don't use atoi for uint
+		initacct(acctf, user, itoa(i), acctnames[i], atoi(root->name), &accts[i]);
+	}
+}
+
+// Initialize an account filetree -- makes itself a directory
+void
+initacct(File *root, char *user, char *name, char *owner, uint bank, Account *acct)
+{
+	acct->name = mallocz(strlen(owner)+1 * sizeof(char), 1);
+	strcpy(acct->name, owner);
+	acct->balance = 0;
+	acct->bank = bank;
+	acct->pin = 0;
+	File *acctdir = createfile(root, name, user, DMDIR|ORDEXALL, acct);
+
+	createfile(acctdir, "name", user, OREADALL, nil);
+	createfile(acctdir, "balance", user, OREADALL, nil);
+}
