@@ -305,9 +305,20 @@ readfile(Fid* fid)
 
 	if(cmp(name, "stats") && pisroot(f)){
 		// Return the text from the stats file
-		Stats *s = (Stats*) fid->file->aux;
+		Stats *s = (Stats*) f->aux;
 		snprint(buf, BUFSIZE, "nbanks: %ud naccts: %ud ntrans: %ud\n", s->nbanks, s->naccts, s->ntrans);
-		
+	}else if(cmp(name, "stats")){
+		// Individual bank statistics
+		Bank* b = f->parent->aux;
+		snprint(buf, BUFSIZE, "naccts: %ud ntrans: %ud\n", b->stats->naccts, b->stats->ntrans);
+	}else if(cmp(name, "name")){
+		// Account owner name
+		Account *a = f->parent->aux;
+		snprint(buf, BUFSIZE, "%s\n", a->name);
+	}else if(cmp(name, "balance")){
+		// Account balance
+		Account *a = f->parent->aux;
+		snprint(buf, BUFSIZE, "%d\n", a->balance);
 	}else{
 		// Return catch-all
 		snprint(buf, BUFSIZE, "err: readfile says no ☹\n");
@@ -433,12 +444,15 @@ initbank(File* root, char *user, uint naccts, char **acctnames)
 void
 initacct(File *root, char *user, char *name, char *owner, uint bank, Account *acct)
 {
+	// In reality, Bank{} elements should probably be ** types -- TODO?
 	acct->name = mallocz(strlen(owner)+1 * sizeof(char), 1);
 	strcpy(acct->name, owner);
 	acct->balance = 0;
 	acct->bank = bank;
 	acct->pin = 0;
 
+	banks[bank]->stats->naccts++;
+	// Maybe stop maintaining two sets of records
 	stats->naccts++;
 	
 	File *acctdir = createfile(root, name, user, DMDIR|ORDEXALL, acct);
