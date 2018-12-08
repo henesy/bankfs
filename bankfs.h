@@ -5,6 +5,7 @@
 #define	BUFSIZE		1024		// Maximum size of a text buffer
 #define MAXTRANS	UINT_MAX-1	// Maximum number of transactions recordable within a bank
 #define	MAXACCTS	MAXTRANS
+#define MAXBANKS	MAXTRANS
 
 // File perm shortcuts
 #define OREADALL	0444
@@ -55,8 +56,9 @@ struct Bank {
 
 /* horrible, horrible global variables */
 
-extern	Tree*	banktree;
-extern	Stats*	stats;
+extern	Tree	*banktree;
+extern	Stats	*stats;
+extern	Bank	**banks;
 
 /* function prototypes */
 

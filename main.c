@@ -10,6 +10,7 @@
 // Global variables -- icky
 Tree	*banktree;
 Stats	*stats;
+Bank	**banks;
 
 
 // Prototypes for 9p handler functions
@@ -39,7 +40,7 @@ void	initacct(File*, char*, char*, char*, uint, Account*);
 // Srv structure to handle incoming 9p communications
 Srv fs = 
 {
-	.auth		=	auth9p,
+//	.auth		=	auth9p,
 	.attach		=	fsattach,
 	.read		=	fsread,
 	.write		=	fswrite,
@@ -50,7 +51,7 @@ Srv fs =
 	.stat		=	nil,
 //	.destroyfid	=	freefid,
 	.destroyfid	=	nil,
-	.keyspec	=	"proto=p9any role=server",
+//	.keyspec	=	"proto=p9any role=server",
 };
 
 
@@ -58,7 +59,7 @@ Srv fs =
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-D] [-s srv] [-m mnt] [-a address]\n", argv0);
+	fprint(2, "usage: %s [-D] [-s srv] [-m mnt] [-a address] [-d .ndb] [-u user] [-g group]\n", argv0);
 	exits("usage");
 }
 
@@ -122,6 +123,7 @@ main(int argc, char *argv[])
 		.ntrans = 0,	// No transactions initially
 	};
 	*stats = s;
+	banks = mallocz(MAXBANKS * sizeof(Bank*), 1);
 
 	// see: 9pfile(2)
 	banktree = fs.tree = alloctree(hostuser, hostgrp, DMDIR|0775, nil);
@@ -308,7 +310,7 @@ readfile(Fid* fid)
 		
 	}else{
 		// Return catch-all
-		snprint(buf, BUFSIZE, "err: readfile says no ☹");
+		snprint(buf, BUFSIZE, "err: readfile says no ☹\n");
 	}
 	
 	return buf;
@@ -389,10 +391,16 @@ initbank(File* root, char *user, uint naccts, char **acctnames)
 	Bank		*bank 	= mallocz(sizeof(Bank), 1);
 	Transaction *trans	= mallocz(MAXTRANS * sizeof(Transaction), 1);
 	Stats		*s		= mallocz(sizeof(Stats), 1);
-	Account		*accts	= malloc(MAXACCTS * sizeof(Account));
+	Account		*accts	= mallocz(MAXACCTS * sizeof(Account), 1);
 	bank->transactions = trans;
 	bank->stats = s;
 	bank->accounts = accts;
+
+	// TODO -- might truncate, don't use atoi for uint
+	uint bankid = atoi(root->name);
+	
+	stats->nbanks++;
+	banks[bankid] = bank;
 
 	// Create transactions & ctl files
 
@@ -406,9 +414,8 @@ initbank(File* root, char *user, uint naccts, char **acctnames)
 	int i;
 	for(i = 0; i < naccts; i++){
 		// Make accounts/N for each desired
-		
-		// TODO -- might truncate, don't use atoi for uint
-		initacct(acctf, user, itoa(i), acctnames[i], atoi(root->name), &accts[i]);
+
+		initacct(acctf, user, itoa(i), acctnames[i], bankid, &accts[i]);
 	}
 }
 
@@ -421,6 +428,9 @@ initacct(File *root, char *user, char *name, char *owner, uint bank, Account *ac
 	acct->balance = 0;
 	acct->bank = bank;
 	acct->pin = 0;
+
+	stats->naccts++;
+	
 	File *acctdir = createfile(root, name, user, DMDIR|ORDEXALL, acct);
 
 	createfile(acctdir, "name", user, OREADALL, nil);
