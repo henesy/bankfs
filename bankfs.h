@@ -2,8 +2,17 @@
 
 #define	BUFSIZE		1024
 #define	MAXPATH		20
+
+// File perm shortcuts
 #define OREADALL	0444
 #define ORDEXALL	0555
+
+// Macros
+
+// Test two strings are equal, shortcut
+#define cmp(a, b) strcmp(a, b) == 0
+// Test if top-level folder
+#define pisroot(f) strcmp(f->parent->name, "/") == 0
 
 /* type definitions */
 
@@ -32,7 +41,6 @@ struct Acctfile {
 /* horrible, horrible global variables */
 
 extern	Tree*	banktree;
-extern	Stats	stats;
 
 /* function prototypes */
 

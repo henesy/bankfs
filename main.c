@@ -8,7 +8,6 @@
 
 // Global variables -- icky
 Tree	*banktree;
-Stats	stats;
 
 // Prototypes for 9p handler functions
 static void		fsattach(Req *r);
@@ -22,6 +21,10 @@ static void		freefid(Fid *fid);
 
 // Prototypes for auth routines
 void becomenone(void);
+
+// Prototypes for utilities
+char*	readfile(Fid*);
+char*	writefile(Fid*, char*);
 
 // Srv structure to handle incoming 9p communications
 Srv fs = 
@@ -58,7 +61,7 @@ main(int argc, char *argv[])
 
 	srv = nil;
 	// Disable for development, it works
-	// addr = "tcp!*!3656";
+	//addr = "tcp!*!3656";
 	addr = nil;
 	mnt = "/mnt/bankfs";
 
@@ -84,9 +87,18 @@ main(int argc, char *argv[])
 		usage();
 
 	// Setup filesystem
-	banktree = fs.tree = alloctree("sys", "sys", DMDIR|0775, nil);
-	createfile(fs.tree->root, "stats", nil, OREADALL, nil);
+	Stats	*stats = mallocz(sizeof(Stats), 1);
+	*stats = (Stats){0, 0, 0};
+
+	banktree = fs.tree = alloctree("glenda", "sys", DMDIR|0775, nil);
+
+	File *statf = createfile(fs.tree->root, "stats", nil, OREADALL, nil);
+	statf->aux = stats;
+	
+	createfile(fs.tree->root, "ctl", nil, 0200, nil);
+
 	createfile(fs.tree->root, "banks", nil, DMDIR|ORDEXALL, nil);
+
 	//createfile(fs.tree->root, "accounts", nil, DMDIR|ORDEXALL, nil);
 
 	// Start listening
@@ -125,17 +137,11 @@ fsread(Req *r)
 	fid = r->fid;
 	q = fid->qid;
 	f = fid->file;
-
-	switch(q.path){
-	case 0:
-		// TODO
-		break;
-	default:
-		strcpy(readmsg, "fsread: invalid read attempt\n");
-	}
 	
-	if(f != nil)
-		print("File->name: %s ¦ Qid.path: %ulld ¦ Parent->name: %s\n", f->name, q.path, f->parent->name);
+	if(f)
+		strncpy(readmsg, readfile(fid), BUFSIZE);
+	else
+		strcpy(readmsg, "fsread: invalid read attempt\n");
 	
 	// Set the read reply string
 	readstr(r, readmsg);
@@ -150,14 +156,19 @@ fswrite(Req *r)
 {
 	Fid		*fid;
 	Qid		q;
+	File	*f;
 	char	str[BUFSIZE];
 
 	fid = r->fid;
 	q = fid->qid;
+	f = fid->file;
+
+	// TODO -- maybe remove DIR stuff
 	if(q.type & QTDIR){
-		respond(r, "permission denied.");
+		respond(r, "permission denied from fswrite");
 		return;
 	}
+
 	if(r->ifcall.count > sizeof(str) - 1){
 		respond(r, "string too large");
 		return;
@@ -165,18 +176,18 @@ fswrite(Req *r)
 	memmove(str, r->ifcall.data, r->ifcall.count);
 	str[r->ifcall.count] = 0;
 	
-	// At this point, str contains the written bytes
-	
-	switch(q.path){
-	case 0:
-		// TODO
-		break;
-	default:
+	// At this point, str contains the bytes written to our file
+
+	if(f){
+		// Determine if a valid write and write if so
+		respond(r, writefile(fid, str));
+		return;
+	}else{
 		respond(r, "fswrite: invalid write attempt");
 		return;
 	}
 	
-	respond(r, nil);
+	// Should never be reached
 }
 
 // Handle 9p walk -- independent implementation
@@ -229,4 +240,61 @@ freefid(Fid *fid)
 }
 
 /* auth functions */
+
+// TODO
+
+/* utility functions */
+
+// Read from a file, if able
+char*
+readfile(Fid* fid)
+{
+	Qid		q		=	fid->qid;
+	File	*f		=	fid->file;
+	char	*name	=	f->name;
+	char	buf[BUFSIZE];
+	
+	if(chatty9p)
+		print("Read⇒ File->name: %s ¦ Qid.path: %ulld ¦ Parent->name: %s\n", name, q.path, f->parent->name);
+
+	if(cmp(name, "stats") && pisroot(f)){
+		// Return the text from the stats file
+		Stats *s = (Stats*) fid->file->aux;
+		snprint(buf, BUFSIZE, "nbanks: %ud naccts: %ud ntrans: %ud\n", s->nbanks, s->naccts, s->ntrans);
+		
+	}else{
+		// Return catch-all
+		snprint(buf, BUFSIZE, "err: readfile says no ☹\n");
+	}
+	
+	return buf;
+}
+
+// Write to a file, if able
+char*
+writefile(Fid* fid, char* str)
+{
+	Qid		q		=	fid->qid;
+	File	*f		=	fid->file;
+	char	*name	=	f->name;
+	char	buf[BUFSIZE];
+	
+	if(chatty9p)
+		print("Write⇒ File->name: %s ¦ Qid.path: %ulld ¦ Parent->name: %s\n", name, q.path, f->parent->name);
+
+	if(cmp(name, "ctl") && pisroot(f)){
+		// Do something with the master control file commands
+		fprint(2, "☺: %s", str);
+		
+		// TODO
+		
+		// Success response
+		return nil;
+	}else{
+		// Return catch-all
+		snprint(buf, BUFSIZE, "err: writefile says no ☹\n");
+	}
+
+	return buf;
+}
 
