@@ -1,3 +1,9 @@
+/*
+typedef struct Tree Tree;
+typedef struct Fid	Fid;
+typedef struct File	File;
+*/
+
 /* constant definitions */
 
 // This is because of stack allocations, it's not really UINT_MAX
@@ -7,7 +13,7 @@
 #define MAXTRANS	UINT_MAX-1	// Maximum number of transactions recordable within a bank
 #define	MAXACCTS	MAXTRANS
 #define MAXBANKS	MAXTRANS
-const uint RESERVE	=	5000000;
+extern const uint RESERVE;
 
 // File perm shortcuts
 #define OREADALL	0444
@@ -64,3 +70,15 @@ extern	Bank	**banks;
 
 /* function prototypes */
 
+// Prototypes for auth routines
+void	becomenone(void);
+
+// Prototypes for utilities
+char*	readfile(Fid*);
+char*	writefile(Fid*, char*);
+char*	uitoa(uint);
+char*	itoa(int);
+
+// Prototypes for bank calls
+void	initbank(File*, char*, uint, char**);
+void	initacct(File*, char*, char*, char*, uint, Account*);
