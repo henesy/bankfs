@@ -53,7 +53,11 @@ An example session:
 	cpu% lc /mnt/bankfs
 	ls: /mnt/bankfs: '/mnt/bankfs' clone failed
 
+Once a bankfs is started and mounted somewhere, say at `/mnt/bankfs`, one can export the filesystem with authentication required as per:
 
+	exportfs -a -r /mnt/bankfs -e sha1 -A 'tcp!*!3656'
+
+Note that authentication won't work unless this is performed from a system with auth available. 
 
 ## References
 

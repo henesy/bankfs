@@ -330,11 +330,21 @@ writefile(Fid* fid, char* str)
 
 	if(cmp(name, "ctl") && pisroot(f)){
 		// Do something with the master control file commands
-		fprint(2, "user sent: %s", str);
+		fprint(2, "user sent to master: %s", str);
 		
 		// TODO
 		
 		// Success response
+		return nil;
+	}else if(cmp(name, "ctl")){
+		// Bank ctl file
+		uint bankid = atoi(f->parent->name);
+		
+		fprint(2, "user sent to bank %d: %s", bankid, str);
+		
+		// TODO
+		
+		// Success
 		return nil;
 	}else{
 		// Return catch-all
@@ -392,13 +402,13 @@ initbank(File* root, char *user, uint naccts, char **acctnames)
 	Transaction *trans	= mallocz(MAXTRANS * sizeof(Transaction), 1);
 	Stats		*s		= mallocz(sizeof(Stats), 1);
 	Account		*accts	= mallocz(MAXACCTS * sizeof(Account), 1);
-	bank->transactions = trans;
-	bank->stats = s;
-	bank->accounts = accts;
+	bank->transactions	= trans;
+	bank->stats			= s;
+	bank->accounts		= accts;
 
 	// TODO -- might truncate, don't use atoi for uint
 	uint bankid = atoi(root->name);
-	
+
 	stats->nbanks++;
 	banks[bankid] = bank;
 
