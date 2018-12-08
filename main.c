@@ -145,6 +145,7 @@ main(int argc, char *argv[])
 		File *bankroot = createfile(banksf, "0", hostuser, DMDIR|ORDEXALL, nil);
 		char *rname[] = {"reserve"};
 		initbank(bankroot, hostuser, 1, rname);
+		banks[0]->accounts[0]->balance = RESERVE;
 	}
 
 	// Start listening
@@ -410,9 +411,9 @@ initbank(File* root, char *user, uint naccts, char **acctnames)
 {
 	// Allocate bank
 	Bank		*bank 	= mallocz(sizeof(Bank), 1);
-	Transaction *trans	= mallocz(MAXTRANS * sizeof(Transaction), 1);
+	Transaction **trans	= mallocz(MAXTRANS * sizeof(Transaction*), 1);
 	Stats		*s		= mallocz(sizeof(Stats), 1);
-	Account		*accts	= mallocz(MAXACCTS * sizeof(Account), 1);
+	Account		**accts	= mallocz(MAXACCTS * sizeof(Account*), 1);
 	bank->transactions	= trans;
 	bank->stats			= s;
 	bank->accounts		= accts;
@@ -435,8 +436,8 @@ initbank(File* root, char *user, uint naccts, char **acctnames)
 	int i;
 	for(i = 0; i < naccts; i++){
 		// Make accounts/N for each desired
-
-		initacct(acctf, user, itoa(i), acctnames[i], bankid, &accts[i]);
+		accts[i] = mallocz(sizeof(Account), 1);
+		initacct(acctf, user, itoa(i), acctnames[i], bankid, accts[i]);
 	}
 }
 
@@ -444,7 +445,6 @@ initbank(File* root, char *user, uint naccts, char **acctnames)
 void
 initacct(File *root, char *user, char *name, char *owner, uint bank, Account *acct)
 {
-	// In reality, Bank{} elements should probably be ** types -- TODO?
 	acct->name = mallocz(strlen(owner)+1 * sizeof(char), 1);
 	strcpy(acct->name, owner);
 	acct->balance = 0;

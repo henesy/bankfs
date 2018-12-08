@@ -1,11 +1,13 @@
 /* constant definitions */
 
+// This is because of stack allocations, it's not really UINT_MAX
 #define	UINT_MAX	8192
 
 #define	BUFSIZE		1024		// Maximum size of a text buffer
 #define MAXTRANS	UINT_MAX-1	// Maximum number of transactions recordable within a bank
 #define	MAXACCTS	MAXTRANS
 #define MAXBANKS	MAXTRANS
+const uint RESERVE	=	5000000;
 
 // File perm shortcuts
 #define OREADALL	0444
@@ -50,8 +52,8 @@ struct Account {
 typedef struct Bank Bank;
 struct Bank {
 	Stats			*stats;
-	Transaction		*transactions;
-	Account			*accounts;
+	Transaction		**transactions;
+	Account			**accounts;
 };
 
 /* horrible, horrible global variables */
