@@ -167,14 +167,14 @@ fsread(Req *r)
 	Fid		*fid;
 	Qid		q;
 	File	*f;
-	char	readmsg[BUFSIZE];
+	char	readmsg[BUFSIZE*BUFSIZE];
 
 	fid = r->fid;
 	q = fid->qid;
 	f = fid->file;
 	
 	if(f)
-		strncpy(readmsg, readfile(fid), BUFSIZE);
+		strncpy(readmsg, readfile(fid), BUFSIZE*BUFSIZE);
 	else
 		strcpy(readmsg, "fsread: invalid read attempt\n");
 	
