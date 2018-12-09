@@ -1,9 +1,3 @@
-/*
-typedef struct Tree Tree;
-typedef struct Fid	Fid;
-typedef struct File	File;
-*/
-
 /* constant definitions */
 
 // This is because of stack allocations, it's not really UINT_MAX
@@ -23,6 +17,7 @@ extern const uint RESERVE;
 
 // Test two strings are equal, shortcut
 #define cmp(a, b) strcmp(a, b) == 0
+
 // Test if top-level folder
 #define pisroot(f) strcmp(f->parent->name, "/") == 0
 
@@ -31,9 +26,10 @@ extern const uint RESERVE;
 // Track bank transactions ;; from → to
 typedef struct Transaction Transaction;
 struct Transaction {
-	uint	from;
+	uint	from;	// $ from → to $
 	uint	to;
-	uint	amt;
+	uint	amt;	// amount transferred
+	long	stamp;	// timestamp of transaction
 };
 
 // Allows easy tracking of bank statistics
@@ -57,16 +53,16 @@ struct Account {
 // Represents a Bank file
 typedef struct Bank Bank;
 struct Bank {
-	Stats			*stats;
-	Transaction		**transactions;
-	Account			**accounts;
+	Stats			*stats;			// General bank statistics
+	Transaction		**transactions;	// Transaction history for bank
+	Account			**accounts;		// Account table for bank
 };
 
 /* horrible, horrible global variables */
 
-extern	Tree	*banktree;
-extern	Stats	*stats;
-extern	Bank	**banks;
+extern	Tree	*banktree;	// Filesystem tree for bankfs
+extern	Stats	*stats;		// Global stats, some TODO here
+extern	Bank	**banks;	// Table of all bank data structures in fs
 
 /* function prototypes */
 
