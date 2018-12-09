@@ -23,7 +23,14 @@ readfile(Fid* fid)
 	if(cmp(name, "stats") && pisroot(f)){
 		// Return the text from the stats file
 		Stats *s = (Stats*) f->aux;
-		snprint(buf, BUFSIZE, "nbanks: %ud naccts: %ud ntrans: %ud\n", s->nbanks, s->naccts, s->ntrans);
+		int i, naccts = 0, ntrans = 0;
+		
+		for(i = 0; i < stats->nbanks; i++){
+			naccts += banks[i]->stats->naccts;
+			ntrans += banks[i]->stats->ntrans;
+		}	
+		
+		snprint(buf, BUFSIZE, "nbanks: %ud naccts: %ud ntrans: %ud\n", s->nbanks, naccts, ntrans);
 	}else if(cmp(name, "stats")){
 		// Individual bank statistics
 		Bank* b = f->parent->aux;

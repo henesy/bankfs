@@ -64,17 +64,15 @@ initbank(File* root, char *user, uint naccts, char **acctnames)
 
 // Initialize an account filetree -- makes itself a directory
 void
-initacct(File *root, char *user, char *name, char *owner, uint bank, Account *acct)
+initacct(File *root, char *user, char *name, char *owner, uint bankid, Account *acct)
 {
 	acct->name = mallocz(strlen(owner)+1 * sizeof(char), 1);
 	strcpy(acct->name, owner);
 	acct->balance = 0;
-	acct->bank = bank;
+	acct->bank = bankid;
 	acct->pin = 0;
 
-	banks[bank]->stats->naccts++;
-	// Maybe stop maintaining two sets of records
-	stats->naccts++;
+	banks[bankid]->stats->naccts++;
 	
 	File *acctdir = createfile(root, name, user, DMDIR|ORDEXALL, acct);
 
