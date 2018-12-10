@@ -35,6 +35,9 @@ readfile(Fid* fid)
 		// Individual bank statistics
 		Bank* b = f->parent->aux;
 		snprint(buf, BUFSIZE*BUFSIZE, "naccts: %ud ntrans: %ud\n", b->stats->naccts, b->stats->ntrans);
+	}else if(cmp(name, "ndb")){
+		Bank* b = f->parent->aux;
+		snprint(buf, BUFSIZE*BUFSIZE, "bank=%s\n\tnaccts=%ud\n\tntrans=%ud\n\n", f->parent->name, b->stats->naccts,b->stats->ntrans);
 	}else if(cmp(name, "name")){
 		// Account owner name
 		Account *a = f->parent->aux;
