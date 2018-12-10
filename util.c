@@ -22,22 +22,19 @@ readfile(Fid* fid)
 
 	if(cmp(name, "stats") && pisroot(f)){
 		// Return the text from the stats file
-		Stats *s = (Stats*) f->aux;
-		int i, naccts = 0, ntrans = 0;
+		Stats s = {((Stats*) f->aux)->nbanks, 0, 0};
+		int i;
 		
-		for(i = 0; i < stats->nbanks; i++){
-			naccts += banks[i]->stats->naccts;
-			ntrans += banks[i]->stats->ntrans;
+		for(i = 0; i < s.nbanks; i++){
+			s.naccts += banks[i]->stats->naccts;
+			s.ntrans += banks[i]->stats->ntrans;
 		}	
 		
-		snprint(buf, BUFSIZE*BUFSIZE, "nbanks: %ud naccts: %ud ntrans: %ud\n", s->nbanks, naccts, ntrans);
+		snprint(buf, BUFSIZE*BUFSIZE, "%S\n", &s);
 	}else if(cmp(name, "stats")){
 		// Individual bank statistics
 		Bank* b = f->parent->aux;
-		snprint(buf, BUFSIZE*BUFSIZE, "naccts: %ud ntrans: %ud\n", b->stats->naccts, b->stats->ntrans);
-	}else if(cmp(name, "ndb")){
-		Bank* b = f->parent->aux;
-		snprint(buf, BUFSIZE*BUFSIZE, "bank=%s\n\tnaccts=%ud\n\tntrans=%ud\n\n", f->parent->name, b->stats->naccts,b->stats->ntrans);
+		snprint(buf, BUFSIZE*BUFSIZE, "bank=%s\n\t%B\n", f->parent->name, b);
 	}else if(cmp(name, "name")){
 		// Account owner name
 		Account *a = f->parent->aux;
@@ -49,18 +46,7 @@ readfile(Fid* fid)
 	}else if(cmp(name, "transactions")){
 		// Transaction history for a bank
 		Bank* b = f->parent->aux;
-		if(b->stats->ntrans > 0){
-			int i;
-			for(i = 0; i < b->stats->ntrans; i++){
-				// Achtung! this is unsafe -- find a better way -- TODO
-				Transaction *t = b->transactions[i];
-				char trans[128];
-				snprint(trans, 128, "%ud → %ud of %ud at %ld\n", t->from, t->to, t->amt, t->stamp);
-				strcat(buf, trans);
-			}
-		}else{
-			sprint(buf, "");
-		}
+		snprint(buf, BUFSIZE*BUFSIZE, "%T\n", b);
 	}else{
 		// Return catch-all
 		snprint(buf, BUFSIZE*BUFSIZE, "err: nothing to see here\n");

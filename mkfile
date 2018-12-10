@@ -7,6 +7,7 @@ TARG = bankfs
 OFILES = main.$O \
 			util.$O \
 			bank.$O \
+			printbank.$O \
 
 HFILES = bankfs.h
 

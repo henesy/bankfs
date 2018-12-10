@@ -58,6 +58,11 @@ struct Bank {
 	Account			**accounts;		// Account table for bank
 };
 
+/* Let the compiler properly check our new Fmts */
+#pragma varargck type "B" Bank*
+#pragma varargck type "S" Stats*
+#pragma varargck type "T" Bank*
+
 /* horrible, horrible global variables */
 
 extern	Tree	*banktree;	// Filesystem tree for bankfs
@@ -78,3 +83,6 @@ char*	itoa(int);
 // Prototypes for bank calls
 void	initbank(File*, char*, uint, char**);
 void	initacct(File*, char*, char*, char*, uint, Account*);
+
+//Prototype for fmtinstall
+void	bankfsfmtinstall(void);

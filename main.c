@@ -103,6 +103,8 @@ main(int argc, char *argv[])
 	if(argc)
 		usage();
 
+	bankfsfmtinstall();
+
 	// Setup filesystem
 	stats = mallocz(sizeof(Stats), 1);
 	Stats s = {

@@ -50,7 +50,6 @@ initbank(File* root, char *user, uint naccts, char **acctnames)
 	root->aux = bank;
 	createfile(root, "transactions", user, OREADALL, trans);
 	createfile(root, "stats", user, OREADALL, stats);
-	createfile(root, "ndb", user, OREADALL, stats);
 	createfile(root, "ctl", user, 0200, nil);
 	// Makes accounts/ folder
 	File *acctf = createfile(root, "accounts", user, DMDIR|ORDEXALL, accts);
