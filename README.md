@@ -55,9 +55,15 @@ An example session:
 
 Once a bankfs is started and mounted somewhere, say at `/mnt/bankfs`, one can export the filesystem with authentication required as per:
 
-	exportfs -a -r /mnt/bankfs -e sha1 -A 'tcp!*!3656'
+	bankfs -s bankfs -u $user -g $user
+	chmod a+rw /srv/bankfs
+	aux/listen1 -v tcp!*!3656 /bin/exportfs -S /srv/bankfs -a
 
 Note that authentication won't work unless this is performed from a system with auth available. 
+
+To mount from Plan 9:
+
+	import -z tcp!plan9.postnix.us!3656 banken /n/banks
 
 ## References
 
