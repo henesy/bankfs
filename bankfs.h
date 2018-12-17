@@ -7,7 +7,7 @@
 #define MAXTRANS	UINT_MAX-1	// Maximum number of transactions recordable within a bank
 #define	MAXACCTS	MAXTRANS
 #define MAXBANKS	MAXTRANS
-#define MAXARGS		8
+#define MAXARGS		10
 extern const uint RESERVE;
 
 // File perm shortcuts

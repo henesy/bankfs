@@ -77,9 +77,7 @@ writefile(Fid* fid, char* str)
 		fprint(2, "user sent to master: %s", str);
 
 		return mastercmd(str);
-		
-		// Success response
-		return nil;
+
 	}else if(cmp(name, "ctl")){
 		// Bank ctl file
 		uint bankid = atoi(f->parent->name);
@@ -122,14 +120,61 @@ bankcmd(File *f, char *str)
 	uint		bankid = atoi(f->name);
 	int			nfields, i;
 	char		*buf[MAXARGS];
+	char		*cmd;
 
-	nfields = getfields(str, buf, MAXARGS, 1, " 	");
+	nfields = getfields(str, buf, MAXARGS, 1, " 	\n");
 	
+	// Debug output
 	fprint(2, "%d fields to bank %d cmd:\n", nfields, bankid);
 	for(i = 0; i < nfields; i++)
 		fprint(2, "%s\n", buf[i]);
+	
+	if(nfields < 2)
+		return "err: each command requires at least 1 arg";
 
-	// TODO
+	cmd = buf[0];
+	if(cmp(cmd, "mkacct")){
+		// Create an account
+		// mkacct pin name…
+		if(nfields < 3)
+			return "err: incorrect arg count to mkacct";
+		
+		// TODO
+	
+	}else if(cmp(cmd, "delacct")){
+		// Delete an account
+		// delacct id
+		if(nfields < 2)
+			return "err: incorrect arg count to delacct";
+		
+		// TODO
+	
+	}else if(cmp(cmd, "modacct")){
+		// Modify an account
+		// modacct id pin name…
+		if(nfields < 4)
+			return "err: incorrect arg count to modacct";
+		
+		// TODO
+	
+	}else if(cmp(cmd, "atrans")){
+		// Perform an authorized transfer
+		// atrans from n to amount pin memo…
+		if(nfields < 7)
+			return "err: incorrect arg count to atrans";
+		
+		// TODO
+	
+	}else if(cmp(cmd, "dep")){
+		// Deposit/Withdraw funds
+		// dep id ± amount memo…
+		if(nfields < 5)
+			return "err: incorrect arg count to dep";
+		
+		// TODO
+	
+	}else
+		return "err: unknown cmd";
 
 	return nil;
 }
@@ -140,14 +185,54 @@ mastercmd(char *str)
 {
 	int			nfields, i;
 	char		*buf[MAXARGS];
+	char		*cmd;
 
-	nfields = getfields(str, buf, MAXARGS, 1, " 	");
+	nfields = getfields(str, buf, MAXARGS, 1, " 	\n");
 	
+	// Debug output
 	fprint(2, "%d fields to master cmd:\n", nfields);
 	for(i = 0; i < nfields; i++)
 		fprint(2, "%s\n", buf[i]);
+	
+	if(nfields < 2)
+		return "err: each command requires at least 1 arg";
+	
+	cmd = buf[0];
+	if(cmp(cmd, "mkbank")){
+		// Create a new bank
+		// mkbank user
+		if(nfields != 2)
+			return "err: incorrect arg count to mkbank";
+			
+		// TODO		
 
-	// TODO
+	}else if(cmp(cmd, "delbank")){
+		// Delete a bank
+		// delbank id
+		if(nfields != 2)
+			return "err: incorrect arg count to delbank";
+		
+		// TODO
 
+	}else if(cmp(cmd, "trans")){
+		// Transfer funds
+		// trans n₀ from n₁ to amt
+		if(nfields != 6)
+			return "err: incorrect arg count to trans";
+		
+		// TODO
+
+	}else if(cmp(cmd, "dump")){
+		// Dumps the bank to bankfs.ndb, copying the existing file, if any to
+		// ./dump/bankfs.ndb.$date
+		// where $date is time since the epoch in the local time zone, as per `date -n`
+		// Since one arg is required, the arg is ignored. Do: dump <nil> to emphasize
+		
+		// TODO
+	
+	}else
+		return "err: unknown cmd";
+
+	// Success
 	return nil;
 }
