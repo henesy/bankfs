@@ -21,7 +21,7 @@ readfile(Fid* fid)
 		print("Read⇒ File->name: %s ¦ Qid.path: %ulld ¦ Parent->name: %s\n", name, q.path, f->parent->name);
 
 	if(cmp(name, "stats") && pisroot(f)){
-		// Return the text from the stats file
+		// Return the text from the master stats file
 		Stats s = {((Stats*) f->aux)->nbanks, 0, 0};
 		int i;
 		
@@ -30,23 +30,28 @@ readfile(Fid* fid)
 			s.ntrans += banks[i]->stats->ntrans;
 		}	
 		
-		snprint(buf, BUFSIZE*BUFSIZE, "%S", &s);
+		snprint(buf, BUFSIZE*BUFSIZE, "%Σ", &s);
+
 	}else if(cmp(name, "stats")){
 		// Individual bank statistics
 		Bank* b = f->parent->aux;
-		snprint(buf, BUFSIZE*BUFSIZE, "bank=%s\n\t%B", f->parent->name, b);
+		snprint(buf, BUFSIZE*BUFSIZE, "bank=%s\n\t%Β", f->parent->name, b);
+
 	}else if(cmp(name, "name")){
 		// Account owner name
 		Account *a = f->parent->aux;
 		snprint(buf, BUFSIZE*BUFSIZE, "%s\n", a->name);
+
 	}else if(cmp(name, "balance")){
 		// Account balance
 		Account *a = f->parent->aux;
 		snprint(buf, BUFSIZE*BUFSIZE, "%d\n", a->balance);
+
 	}else if(cmp(name, "transactions")){
 		// Transaction history for a bank
 		Bank* b = f->parent->aux;
-		snprint(buf, BUFSIZE*BUFSIZE, "%T\n", b);
+		snprint(buf, BUFSIZE*BUFSIZE, "%Τ\n", b);
+
 	}else{
 		// Return catch-all
 		snprint(buf, BUFSIZE*BUFSIZE, "err: nothing to see here\n");

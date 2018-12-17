@@ -13,7 +13,7 @@ printstats(Fmt *f, Stats *s)
 }
 
 int
-Bankfmt(Fmt *f)
+Bankfmtr(Fmt *f)
 {
 	Bank *b;
 	b = va_arg(f->args, Bank*);
@@ -21,7 +21,7 @@ Bankfmt(Fmt *f)
 }
 
 int
-Statsfmt(Fmt *f)
+Statsfmtr(Fmt *f)
 {
 	Stats *s;
 	int r;
@@ -32,7 +32,7 @@ Statsfmt(Fmt *f)
 }
 
 int
-Transfmt(Fmt *f)
+Transfmtr(Fmt *f)
 {
 	Bank *b;
 	int r, i;
@@ -46,10 +46,27 @@ Transfmt(Fmt *f)
 	return r;
 }
 
+// Install formatters for printing bank data structures
 void
 bankfsfmtinstall(void)
 {
-	fmtinstall('B', Bankfmt);
-	fmtinstall('S', Statsfmt);
-	fmtinstall('T', Transfmt);
+	// TODO -- this throws type mismatch warning
+
+	// Print master stats -- alt + *W
+	// fmtinstall(L'Ω', Masterfmtr);
+
+	// Print bank for reads -- alt + *B
+	fmtinstall(L'Β', Bankfmtr);
+	// For bankfs.ndb -- alt + *b
+	// fmtinstall(L'β', Bankfmtn);
+
+	// Print statistics for reads -- alt + *S
+	fmtinstall(L'Σ', Statsfmtr);
+	// For ndb -- alt + *s
+	// fmtinstall(L'σ', Transnfmt);
+
+	// Print transactions for read -- alt + *T
+	fmtinstall(L'Τ', Transfmtr);
+	// For ndb -- alt + *t
+	// fmtinstall(L'τ', Transfmtn);
 }
