@@ -75,21 +75,20 @@ writefile(Fid* fid, char* str)
 	if(cmp(name, "ctl") && pisroot(f)){
 		// Do something with the master control file commands
 		fprint(2, "user sent to master: %s", str);
-		
-		// TODO
+
+		return mastercmd(str);
 		
 		// Success response
 		return nil;
 	}else if(cmp(name, "ctl")){
 		// Bank ctl file
 		uint bankid = atoi(f->parent->name);
+		// Bank *b = f->parent->aux;
 		
 		fprint(2, "user sent to bank %d: %s", bankid, str);
-		
-		// TODO
-		
-		// Success
-		return nil;
+
+		return bankcmd(f, str);
+
 	}else{
 		// Return catch-all
 		snprint(buf, BUFSIZE, "err: nothing to write here\n");
@@ -114,4 +113,41 @@ uitoa(uint n)
 	char buf[BUFSIZE];
 	snprint(buf, BUFSIZE, "%ud", n);
 	return buf;
+}
+
+// Process individual bank input command language ;; returns nil on success
+char*
+bankcmd(File *f, char *str)
+{
+	uint		bankid = atoi(f->name);
+	int			nfields, i;
+	char		*buf[MAXARGS];
+
+	nfields = getfields(str, buf, MAXARGS, 1, " 	");
+	
+	fprint(2, "%d fields to bank %d cmd:\n", nfields, bankid);
+	for(i = 0; i < nfields; i++)
+		fprint(2, "%s\n", buf[i]);
+
+	// TODO
+
+	return nil;
+}
+
+// Process master input command language ;; returns nil on success
+char*
+mastercmd(char *str)
+{
+	int			nfields, i;
+	char		*buf[MAXARGS];
+
+	nfields = getfields(str, buf, MAXARGS, 1, " 	");
+	
+	fprint(2, "%d fields to master cmd:\n", nfields);
+	for(i = 0; i < nfields; i++)
+		fprint(2, "%s\n", buf[i]);
+
+	// TODO
+
+	return nil;
 }

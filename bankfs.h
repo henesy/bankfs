@@ -7,6 +7,7 @@
 #define MAXTRANS	UINT_MAX-1	// Maximum number of transactions recordable within a bank
 #define	MAXACCTS	MAXTRANS
 #define MAXBANKS	MAXTRANS
+#define MAXARGS		8
 extern const uint RESERVE;
 
 // File perm shortcuts
@@ -71,7 +72,7 @@ extern	Bank	**banks;	// Table of all bank data structures in fs
 
 /* function prototypes */
 
-// Prototypes for auth routines
+// Prototypes for auth routines -- deprecated(?)
 void	becomenone(void);
 
 // Prototypes for utilities
@@ -79,10 +80,12 @@ char*	readfile(Fid*);
 char*	writefile(Fid*, char*);
 char*	uitoa(uint);
 char*	itoa(int);
+char*	bankcmd(File*, char*);
+char*	mastercmd(char*);
 
 // Prototypes for bank calls
 void	initbank(File*, char*, uint, char**);
 void	initacct(File*, char*, char*, char*, uint, Account*);
 
-//Prototype for fmtinstall
+// Prototypes for fmtinstall routines
 void	bankfsfmtinstall(void);
