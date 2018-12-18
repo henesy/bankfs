@@ -25,9 +25,11 @@ readfile(Fid* fid)
 		Stats s = {((Stats*) f->aux)->nbanks, 0, 0};
 		int i;
 		
-		for(i = 0; i < s.nbanks; i++){
-			s.naccts += banks[i]->stats->naccts;
-			s.ntrans += banks[i]->stats->ntrans;
+		for(i = 0; i < MAXBANKS; i++){
+			if(banks[i] != nil){
+				s.naccts += banks[i]->stats->naccts;
+				s.ntrans += banks[i]->stats->ntrans;
+			}
 		}	
 		
 		snprint(buf, BUFSIZE*BUFSIZE, "%Σ", &s);
@@ -211,8 +213,15 @@ mastercmd(char *str)
 		// delbank id
 		if(nfields != 2)
 			return "err: incorrect arg count to delbank";
+
+		uint bankid = atoi(buf[1]);
+
+		if(bankid <= 0)
+			return "err: invalid bank ID range";
+		if(banks[bankid] == nil)
+			return "err: bank is nil";
 		
-		// TODO
+		delbank(banks[bankid], bankid);
 
 	}else if(cmp(cmd, "trans")){
 		// Transfer funds

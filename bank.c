@@ -79,3 +79,60 @@ initacct(File *root, char *user, char *name, char *owner, uint bankid, Account *
 	createfile(acctdir, "name", user, OREADALL, nil);
 	createfile(acctdir, "balance", user, OREADALL, nil);
 }
+
+/* Functions called by ctl files */
+
+// Deletes a bank from the registry, makes its pointer nil
+void
+delbank(Bank *b, uint bankid)
+{
+	Bankdestroy(b);
+	banks[bankid] = nil;
+	stats->nbanks--;
+}
+
+/* Cleanup functionality */
+
+// Free's the elements within a Bank
+void
+Bankdestroy(Bank *b)
+{
+	Statsdestroy(b->stats);
+	Transendestroy(b->transactions);
+	Acctsdestroy(b->accounts);
+}
+
+// Destroy a Stats
+void	Statsdestroy(Stats*)
+{
+	// TODO
+
+}
+
+// Destroy a Transaction
+void	Transdestroy(Transaction*)
+{
+	// TODO
+
+}
+
+// Destroy an Account
+void	Acctdestroy(Account*)
+{
+	// TODO
+
+}
+
+// Destroy a set of transactions
+void	Transendestroy(Transaction**)
+{
+	// TODO
+
+}
+
+// Destroy a set of accounts
+void	Acctsdestroy(Account**)
+{
+	// TODO
+
+}

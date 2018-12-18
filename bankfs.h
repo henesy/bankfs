@@ -36,7 +36,7 @@ struct Transaction {
 // Allows easy tracking of bank statistics
 typedef struct Stats Stats;
 struct Stats {
-	uint	nbanks;		// number of banks in the db
+	uint	nbanks;		// number of banks in the db ;; do not iterate to this, use MAXBANKS and nil
 	uint	naccts;		// number of accounts in the db
 	uint	ntrans;		// number of transactions since reboot
 };
@@ -86,6 +86,15 @@ char*	mastercmd(char*);
 // Prototypes for bank calls
 void	initbank(File*, char*, uint, char**);
 void	initacct(File*, char*, char*, char*, uint, Account*);
+void	delbank(Bank*, uint);
+
+// Prototypes for cleanup functions
+void	Bankdestroy(Bank*);
+void	Statsdestroy(Stats*);
+void	Transdestroy(Transaction*);
+void	Acctdestroy(Account*);
+void	Transendestroy(Transaction**);
+void	Acctsdestroy(Account**);
 
 // Prototypes for fmtinstall routines
 void	bankfsfmtinstall(void);
