@@ -6,7 +6,7 @@
 #define	BUFSIZE		1024		// Maximum size of a text buffer
 #define MAXTRANS	UINT_MAX-1	// Maximum number of transactions recordable within a bank
 #define	MAXACCTS	MAXTRANS
-#define MAXBANKS	MAXTRANS
+#define MAXBANKS	1024
 #define MAXARGS		10
 extern const uint RESERVE;
 

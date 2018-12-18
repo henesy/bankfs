@@ -25,10 +25,9 @@ readfile(Fid* fid)
 		Stats s = {((Stats*) f->aux)->nbanks, 0, 0};
 		int i;
 		
+		// TODO -- this really shouldn't be -1
 		for(i = 0; i < MAXBANKS; i++){
 			if(banks[i] != nil){
-				if(banks[i]->stats == nil)
-					fprint(2, "stats is nil!");
 				s.naccts += banks[i]->stats->naccts;
 				s.ntrans += banks[i]->stats->ntrans;
 			}
