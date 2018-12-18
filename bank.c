@@ -91,6 +91,74 @@ delbank(Bank *b, uint bankid)
 	stats->nbanks--;
 }
 
+// 
+void
+mkbank(char*)
+{
+	// TODO
+
+}
+
+// 
+void
+trans(Bank*, uint, Bank*, uint, uint)
+{
+	// TODO
+
+}
+
+// 
+void
+dump()
+{
+	// TODO
+
+}
+
+
+// Individual bank ctl logic
+
+// 
+void
+mkacct(Bank*, uint, char*)
+{
+	// TODO
+
+}
+
+// 
+void
+delacct(Bank*, uint)
+{
+	// TODO
+
+}
+
+// 
+void
+modacct(Bank*, uint, uint, char*)
+{
+	// TODO
+
+}
+
+// 
+void
+atrans(Bank*, uint, Bank*, uint, uint, uint, char*)
+{
+	// TODO
+
+}
+
+// 
+void
+dep(Bank*, uint, uint, uint, char*)
+{
+	// TODO
+
+}
+
+
 /* Cleanup functionality */
 
 // Free's the elements within a Bank

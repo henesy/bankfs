@@ -146,7 +146,7 @@ bankcmd(File *f, char *str)
 	}else if(cmp(cmd, "delacct")){
 		// Delete an account
 		// delacct id
-		if(nfields < 2)
+		if(nfields != 2)
 			return "err: incorrect arg count to delacct";
 		
 		// TODO
