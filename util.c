@@ -256,3 +256,13 @@ mastercmd(char *str)
 	// Success
 	return nil;
 }
+
+/* File cleanup */
+
+// Recursively clean up a file tree from File *f
+void
+rmdir(File*)
+{
+	// TODO -- see: int      removefile(File *file)
+
+}

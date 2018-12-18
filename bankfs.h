@@ -88,6 +88,9 @@ char*	itoa(int);
 char*	bankcmd(File*, char*);
 char*	mastercmd(char*);
 
+// File cleanup routines
+void	rmdir(File*);
+
 // Prototypes for bank calls
 void	initbank(File*, char*, uint, char**);
 void	initacct(File*, char*, char*, char*, uint, Account*);

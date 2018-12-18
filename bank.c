@@ -86,6 +86,9 @@ initacct(File *root, char *user, char *name, char *owner, uint bankid, Account *
 void
 delbank(Bank *b, uint bankid)
 {
+	File *f;
+	// TODO -- search for directory that holds this bank -- or have banks track their ID(?)
+	rmdir(f);
 	Bankdestroy(b);
 	banks[bankid] = nil;
 	stats->nbanks--;
