@@ -69,6 +69,7 @@ struct Bank {
 extern	Tree	*banktree;	// Filesystem tree for bankfs
 extern	Stats	*stats;		// Global stats, some TODO here
 extern	Bank	**banks;	// Table of all bank data structures in fs
+extern	File	*banksf;	// File pointer for banks root
 
 /* function prototypes */
 

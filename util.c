@@ -27,6 +27,8 @@ readfile(Fid* fid)
 		
 		for(i = 0; i < MAXBANKS; i++){
 			if(banks[i] != nil){
+				if(banks[i]->stats == nil)
+					fprint(2, "stats is nil!");
 				s.naccts += banks[i]->stats->naccts;
 				s.ntrans += banks[i]->stats->ntrans;
 			}
@@ -87,7 +89,7 @@ writefile(Fid* fid, char* str)
 		
 		fprint(2, "user sent to bank %d: %s", bankid, str);
 
-		return bankcmd(f, str);
+		return bankcmd(f->parent, str);
 
 	}else{
 		// Return catch-all
@@ -203,10 +205,20 @@ mastercmd(char *str)
 	if(cmp(cmd, "mkbank")){
 		// Create a new bank
 		// mkbank user
+		int i;
 		if(nfields != 2)
 			return "err: incorrect arg count to mkbank";
 			
-		// TODO		
+		// Check for available bankid
+		for(i = 0; i < MAXBANKS; i++)
+			if(banks[i] == nil)
+				break;
+
+		if(i >= MAXBANKS)
+			return "err: no bank slots left";
+		
+		// Should pass bankid
+		mkbank(buf[1]);
 
 	}else if(cmp(cmd, "delbank")){
 		// Delete a bank

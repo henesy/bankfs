@@ -91,23 +91,39 @@ delbank(Bank *b, uint bankid)
 	stats->nbanks--;
 }
 
-// 
+// Creates a bank under a given user name, this is for team usage -- TODO, all need error handling
 void
-mkbank(char*)
+mkbank(char *user)
 {
 	// TODO
-
+	File	*f;
+	char*	bankid = nil;
+	int		i;
+	
+	for(i = 0; i < MAXBANKS; i++)
+		if(banks[i] == nil){
+			bankid = itoa(i);
+			break;
+		}
+	
+	if(bankid == nil){
+		werrstr("err: out of bankid's; no bank made.");
+		return;
+	}
+	
+	f = createfile(banksf, bankid, user, DMDIR|ORDEXALL, nil);
+	initbank(f, user, 0, nil);
 }
 
-// 
+// Transfer *amount* from n₀/from to n₁/to
 void
-trans(Bank*, uint, Bank*, uint, uint)
+trans(Bank *n₀, uint from, Bank *n₁, uint to, uint amount)
 {
-	// TODO
-
+	n₀->accounts[from]->balance -= amount;
+	n₁->accounts[to]->balance += amount;
 }
 
-// 
+// Dump everything to bankfs.ndb, backing up existing files to ./dumps/ if necessary
 void
 dump()
 {

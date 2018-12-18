@@ -11,6 +11,7 @@
 Tree	*banktree;
 Stats	*stats;
 Bank	**banks;
+File	*banksf;
 const uint RESERVE	=	5000000;
 
 
@@ -122,7 +123,7 @@ main(int argc, char *argv[])
 
 	createfile(fs.tree->root, "ctl", nil, 0200, nil);
 
-	File *banksf = createfile(fs.tree->root, "banks", nil, DMDIR|ORDEXALL, nil);
+	banksf = createfile(fs.tree->root, "banks", nil, DMDIR|ORDEXALL, nil);
 
 	// Load from database here
 
