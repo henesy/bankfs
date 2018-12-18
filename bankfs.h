@@ -60,9 +60,13 @@ struct Bank {
 };
 
 /* Let the compiler properly check our new Fmts */
-#pragma varargck type "B" Bank*
-#pragma varargck type "S" Stats*
-#pragma varargck type "T" Bank*
+#pragma varargck type "Β" Bank*
+#pragma varargck type "β" Bank*
+#pragma varargck type "Σ" Stats*
+#pragma varargck type "σ" Stats*
+#pragma varargck type "Ω" Stats*
+#pragma varargck type "Τ" Bank*
+#pragma varargck type "τ" Bank*
 
 /* horrible, horrible global variables */
 
