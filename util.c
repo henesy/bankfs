@@ -275,7 +275,14 @@ rmdir(File *froot)
 		// Directory is not empty
 		Readdir *dir = opendirfile(froot);
 		
-		// Read through all children
+		Filelist *cursor;
+		for(cursor = dir->fl; ; cursor = cursor->link) {
+			if(cursor == nil)
+				break;
+			fprint(2, "cursor: %s\n", cursor->f->name);
+		}
+
+
 		uchar *buf = mallocz(nchildren * DIRMAX, 1);
 		Dir d;
 		char *strs = mallocz(STATMAX, 1);
@@ -284,6 +291,7 @@ rmdir(File *froot)
 		long dirsize = readdirfile(dir, buf, nchildren * DIRMAX, 0);
 		
 		int i;
+		// Delete all the children
 		for(i = 0; i < nchildren; i++){
 			uint bytes = convM2D(buf, dirsize, &d, strs);
 			buf += bytes;
@@ -295,10 +303,13 @@ rmdir(File *froot)
 				fprint(2, "ftorm is nil!\n");
 			}
 			
+			closefile(ftorm);
 			int err₁ = removefile(ftorm);
 			if(err₁ < 0)
 				// We tried to delete a dir
 				rmdir(ftorm);
+			else
+				fprint(2, "deleted %s\n", d.name);
 		}
 		
 		// free(buf);
