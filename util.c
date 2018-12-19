@@ -261,8 +261,41 @@ mastercmd(char *str)
 
 // Recursively clean up a file tree from File *f
 void
-rmdir(File*)
+rmdir(File *froot)
 {
 	// TODO -- see: int      removefile(File *file)
+	int err;
+	int nchildren = froot->nchild;
 
+	err = removefile(froot);
+	fprint(2, "remove err: %d for %s\n", err, froot->name);
+	if(err < 0){
+		// Directory is not empty
+		Readdir *dir = opendirfile(froot);
+		
+		// Read through all children
+		long ret = 1;	// amount of bytes read into buf
+		long offset = 0;
+		while(ret != 0){
+			uchar *buf = mallocz(DIRMAX, 1);
+			Dir d;
+			char *strs = mallocz(STATMAX, 1);
+				
+			// o=0 if a dir, o=1 if not ;; n might be number of Dir's?
+			ret = readdirfile(dir, buf, nchildren * DIRMAX, offset);
+			offset += ret;
+				
+			convM2D(buf, ret, &d, strs);
+				
+			fprint(2, "ret: %uld on %s\n", ret, d.name);
+			
+			free(buf);
+			free(strs);
+		}
+		
+		closedirfile(dir);
+
+		// Remove the file once all children are gone
+		removefile(froot);
+	}
 }

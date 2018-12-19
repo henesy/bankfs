@@ -88,6 +88,9 @@ delbank(Bank *b, uint bankid)
 {
 	File *f;
 	// TODO -- search for directory that holds this bank -- or have banks track their ID(?)
+	char fpath[BUFSIZE];
+	snprint(fpath, BUFSIZE, "%ud", bankid);
+	f = walkfile(banksf, fpath);
 	rmdir(f);
 	Bankdestroy(b);
 	banks[bankid] = nil;
