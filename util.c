@@ -261,52 +261,21 @@ mastercmd(char *str)
 
 /* File cleanup */
 
-void
-printfl(Filelist* fl)
-{
-	fprint(2, "== BEGIN ==\ncursor starts at %p\n", fl);
-	Filelist *cursor;
-	for(cursor = fl; ; cursor = cursor->link) {
-		if(cursor == nil)
-			break;
-		fprint(2, "cursor: %s is %p whose f is %p; next is %p\n", cursor->f->name, cursor, cursor->f, cursor->link);
-	}
-	fprint(2, "== END ==\n");
-}
-
-void
-assertfl(File *f)
-{
-	fprint(2, "asserting %s!\n", f->name);
-	Filelist *fl, *flnext;
-
-	for(fl=f->filelist; fl; fl=flnext){
-		flnext = fl->link;
-		assert(fl->f == nil);
-	}
-	fprint(2, "local assertion passed!\n");
-} 
-
 // Recursively clean up a file tree from File *f
 void
 rmdir(File *froot)
 {
-	// TODO -- see: int      removefile(File *file)
 	int err;
 	int nchildren = froot->nchild;
 
 	err = removefile(froot);
-	//fprint(2, "remove err: %d for %s with %d children\n", err, froot->name, nchildren);
 	if(err >= 0){
 		fprint(2, "deleted %s\n", froot->name);
 		return;
 	}
-	//incref(froot);
 
 	// Directory is not empty
 	Readdir *dir = opendirfile(froot);
-	
-	//printfl(dir->fl);
 
 	uchar *buf = emalloc(nchildren * DIRMAX);
 	Dir d;
@@ -328,9 +297,6 @@ rmdir(File *froot)
 		if(ftorm == nil){
 			fprint(2, "ftorm is nil!\n");
 		}
-		
-		//printfl(ftorm->filelist);
-		//assertfl(ftorm);
 
 		//fprint(2, "parent refs: %ld\n", froot->Ref.ref);
 		rmdir(ftorm);
@@ -341,7 +307,6 @@ rmdir(File *froot)
 	closedirfile(dir);
 
 	// Remove the file once all children are gone
-	// incref(froot);
 	removefile(froot);
 }
 
