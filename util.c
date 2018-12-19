@@ -274,6 +274,19 @@ printfl(Filelist* fl)
 	fprint(2, "== END ==\n");
 }
 
+void
+assertfl(File *f)
+{
+	fprint(2, "asserting %s!\n", f->name);
+	Filelist *fl, *flnext;
+
+	for(fl=f->filelist; fl; fl=flnext){
+		flnext = fl->link;
+		assert(fl->f == nil);
+	}
+	fprint(2, "local assertion passed!\n");
+} 
+
 // Recursively clean up a file tree from File *f
 void
 rmdir(File *froot)
@@ -304,6 +317,7 @@ rmdir(File *froot)
 	int i;
 	// Delete all the children
 	for(i = 0; i < nchildren; i++){
+		incref(froot);
 		uint bytes = convM2D(buf, dirsize, &d, strs);
 		buf += bytes;
 		
@@ -315,15 +329,19 @@ rmdir(File *froot)
 		}
 		
 		printfl(ftorm->filelist);
+		assertfl(ftorm);
 
+		fprint(2, "parent refs: %ld\n", froot->Ref.ref);
 		rmdir(ftorm);
-
-		// Clean up once children gone		
-		// closedirfile(dir);
-
-		// Remove the file once all children are gone
-		// removefile(froot);
+		fprint(2, "parent refs: %ld\n", froot->Ref.ref);
 	}
+	
+	// Clean up once children gone		
+	closedirfile(dir);
+
+	// Remove the file once all children are gone
+	incref(froot);
+	removefile(froot);
 }
 
 // Panickable mallocz
