@@ -296,16 +296,17 @@ rmdir(File *froot)
 	int nchildren = froot->nchild;
 
 	err = removefile(froot);
-	fprint(2, "remove err: %d for %s with %d children\n", err, froot->name, nchildren);
+	//fprint(2, "remove err: %d for %s with %d children\n", err, froot->name, nchildren);
 	if(err >= 0){
 		fprint(2, "deleted %s\n", froot->name);
 		return;
 	}
+	//incref(froot);
 
 	// Directory is not empty
 	Readdir *dir = opendirfile(froot);
 	
-	printfl(dir->fl);
+	//printfl(dir->fl);
 
 	uchar *buf = emalloc(nchildren * DIRMAX);
 	Dir d;
@@ -321,26 +322,26 @@ rmdir(File *froot)
 		uint bytes = convM2D(buf, dirsize, &d, strs);
 		buf += bytes;
 		
-		fprint(2, "bytes: %ud on %s\n", bytes, d.name);
+		//fprint(2, "bytes: %ud on %s\n", bytes, d.name);
 		
 		File *ftorm = walkfile(froot, d.name);
 		if(ftorm == nil){
 			fprint(2, "ftorm is nil!\n");
 		}
 		
-		printfl(ftorm->filelist);
-		assertfl(ftorm);
+		//printfl(ftorm->filelist);
+		//assertfl(ftorm);
 
-		fprint(2, "parent refs: %ld\n", froot->Ref.ref);
+		//fprint(2, "parent refs: %ld\n", froot->Ref.ref);
 		rmdir(ftorm);
-		fprint(2, "parent refs: %ld\n", froot->Ref.ref);
+		//fprint(2, "parent refs: %ld\n", froot->Ref.ref);
 	}
 	
 	// Clean up once children gone		
 	closedirfile(dir);
 
 	// Remove the file once all children are gone
-	incref(froot);
+	// incref(froot);
 	removefile(froot);
 }
 
