@@ -186,16 +186,18 @@ bankcmd(File *f, char *str)
 char*
 mastercmd(char *str)
 {
-	int			nfields, i;
+	int			nfields;	//, i;
 	char		*buf[MAXARGS];
 	char		*cmd;
 
 	nfields = getfields(str, buf, MAXARGS, 1, " 	\n");
 	
 	// Debug output
+	/*
 	fprint(2, "%d fields to master cmd:\n", nfields);
 	for(i = 0; i < nfields; i++)
 		fprint(2, "%s\n", buf[i]);
+	*/
 	
 	if(nfields < 2)
 		return "err: each command requires at least 1 arg";
@@ -268,31 +270,41 @@ rmdir(File *froot)
 	int nchildren = froot->nchild;
 
 	err = removefile(froot);
-	fprint(2, "remove err: %d for %s\n", err, froot->name);
+	fprint(2, "remove err: %d for %s with %d children\n", err, froot->name, nchildren);
 	if(err < 0){
 		// Directory is not empty
 		Readdir *dir = opendirfile(froot);
 		
 		// Read through all children
-		long ret = 1;	// amount of bytes read into buf
-		long offset = 0;
-		while(ret != 0){
-			uchar *buf = mallocz(DIRMAX, 1);
-			Dir d;
-			char *strs = mallocz(STATMAX, 1);
+		uchar *buf = mallocz(nchildren * DIRMAX, 1);
+		Dir d;
+		char *strs = mallocz(STATMAX, 1);
 				
-			// o=0 if a dir, o=1 if not ;; n might be number of Dir's?
-			ret = readdirfile(dir, buf, nchildren * DIRMAX, offset);
-			offset += ret;
-				
-			convM2D(buf, ret, &d, strs);
-				
-			fprint(2, "ret: %uld on %s\n", ret, d.name);
+		// o=0 if a dir, o=1 if not ;; n is number of bytes in buf
+		long dirsize = readdirfile(dir, buf, nchildren * DIRMAX, 0);
+		
+		int i;
+		for(i = 0; i < nchildren; i++){
+			uint bytes = convM2D(buf, dirsize, &d, strs);
+			buf += bytes;
 			
-			free(buf);
-			free(strs);
+			fprint(2, "bytes: %ud on %s\n", bytes, d.name);
+			
+			File *ftorm = walkfile(froot, d.name);
+			if(ftorm == nil){
+				fprint(2, "ftorm is nil!\n");
+			}
+			
+			int err₁ = removefile(ftorm);
+			if(err₁ < 0)
+				// We tried to delete a dir
+				rmdir(ftorm);
 		}
 		
+		// free(buf);
+		// free(strs);
+
+		// Clean up once children gone		
 		closedirfile(dir);
 
 		// Remove the file once all children are gone
