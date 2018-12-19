@@ -85,6 +85,7 @@ char*	readfile(Fid*);
 char*	writefile(Fid*, char*);
 char*	uitoa(uint);
 char*	itoa(int);
+void*	emalloc(ulong);
 char*	bankcmd(File*, char*);
 char*	mastercmd(char*);
 

@@ -117,7 +117,7 @@ mkbank(char *user)
 		return;
 	}
 	
-	f = createfile(banksf, bankid, user, DMDIR|ORDEXALL, nil);
+	f = createfile(banksf, bankid, user, DMDIR|ORDEXALL|OWRITE, nil);
 	initbank(f, user, 0, nil);
 }
 

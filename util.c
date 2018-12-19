@@ -261,6 +261,19 @@ mastercmd(char *str)
 
 /* File cleanup */
 
+void
+printfl(Filelist* fl)
+{
+	fprint(2, "== BEGIN ==\ncursor starts at %p\n", fl);
+	Filelist *cursor;
+	for(cursor = fl; ; cursor = cursor->link) {
+		if(cursor == nil)
+			break;
+		fprint(2, "cursor: %s is %p whose f is %p; next is %p\n", cursor->f->name, cursor, cursor->f, cursor->link);
+	}
+	fprint(2, "== END ==\n");
+}
+
 // Recursively clean up a file tree from File *f
 void
 rmdir(File *froot)
@@ -271,54 +284,56 @@ rmdir(File *froot)
 
 	err = removefile(froot);
 	fprint(2, "remove err: %d for %s with %d children\n", err, froot->name, nchildren);
-	if(err < 0){
-		// Directory is not empty
-		Readdir *dir = opendirfile(froot);
-		
-		Filelist *cursor;
-		for(cursor = dir->fl; ; cursor = cursor->link) {
-			if(cursor == nil)
-				break;
-			fprint(2, "cursor: %s\n", cursor->f->name);
-		}
+	if(err >= 0){
+		fprint(2, "deleted %s\n", froot->name);
+		return;
+	}
 
+	// Directory is not empty
+	Readdir *dir = opendirfile(froot);
+	
+	printfl(dir->fl);
 
-		uchar *buf = mallocz(nchildren * DIRMAX, 1);
-		Dir d;
-		char *strs = mallocz(STATMAX, 1);
-				
-		// o=0 if a dir, o=1 if not ;; n is number of bytes in buf
-		long dirsize = readdirfile(dir, buf, nchildren * DIRMAX, 0);
+	uchar *buf = emalloc(nchildren * DIRMAX);
+	Dir d;
+	char *strs = emalloc(STATMAX);
+			
+	// o=0 if a dir, o=1 if not ;; n is number of bytes in buf
+	long dirsize = readdirfile(dir, buf, nchildren * DIRMAX, 0);
+	
+	int i;
+	// Delete all the children
+	for(i = 0; i < nchildren; i++){
+		uint bytes = convM2D(buf, dirsize, &d, strs);
+		buf += bytes;
 		
-		int i;
-		// Delete all the children
-		for(i = 0; i < nchildren; i++){
-			uint bytes = convM2D(buf, dirsize, &d, strs);
-			buf += bytes;
-			
-			fprint(2, "bytes: %ud on %s\n", bytes, d.name);
-			
-			File *ftorm = walkfile(froot, d.name);
-			if(ftorm == nil){
-				fprint(2, "ftorm is nil!\n");
-			}
-			
-			closefile(ftorm);
-			int err₁ = removefile(ftorm);
-			if(err₁ < 0)
-				// We tried to delete a dir
-				rmdir(ftorm);
-			else
-				fprint(2, "deleted %s\n", d.name);
+		fprint(2, "bytes: %ud on %s\n", bytes, d.name);
+		
+		File *ftorm = walkfile(froot, d.name);
+		if(ftorm == nil){
+			fprint(2, "ftorm is nil!\n");
 		}
 		
-		// free(buf);
-		// free(strs);
+		printfl(ftorm->filelist);
+
+		rmdir(ftorm);
 
 		// Clean up once children gone		
-		closedirfile(dir);
+		// closedirfile(dir);
 
 		// Remove the file once all children are gone
-		removefile(froot);
+		// removefile(froot);
 	}
+}
+
+// Panickable mallocz
+void*
+emalloc(ulong sz)
+{
+	void *ptr;
+
+	ptr = mallocz(sz, 1);
+	if(!ptr)
+		sysfatal("ON NO MALLOC FAILED FUCK");
+	return ptr;
 }
