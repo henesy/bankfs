@@ -24,13 +24,16 @@ extern const uint RESERVE;
 
 /* type definitions */
 
-// Track bank transactions ;; from → to
+// Track bank transactions ;; from → to ;; works across banks
 typedef struct Transaction Transaction;
 struct Transaction {
+	uint	n₀;		// from bank
+	uint	n₁;		// to bank
 	uint	from;	// $ from → to $
 	uint	to;
 	uint	amt;	// amount transferred
 	long	stamp;	// timestamp of transaction
+	char*	memo;	// memo for transaction
 };
 
 // Allows easy tracking of bank statistics
@@ -106,7 +109,7 @@ void	dump();
 void	mkacct(File*, uint, char*);
 void	delacct(File*, Bank*, uint);
 void	modacct(Bank*, uint, uint*, char*);
-void	atrans(Bank*, uint, Bank*, uint, uint, uint, char*);
+void	atrans(uint, uint, uint, uint, uint, uint, char*);
 // void	dep(Bank*, uint, uint, uint, char*);
 
 // Prototypes for cleanup functions

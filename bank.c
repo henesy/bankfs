@@ -125,8 +125,11 @@ mkbank(char *user)
 void
 trans(Bank *n₀, uint from, Bank *n₁, uint to, uint amount)
 {
-	n₀->accounts[from]->balance -= amount;
-	n₁->accounts[to]->balance += amount;
+	Account *a₀ = n₀->accounts[from];
+	Account *a₁ = n₁->accounts[to];
+	
+	a₀->balance -= amount;
+	a₁->balance += amount;
 }
 
 // Dump everything to bankfs.ndb, backing up existing files to ./dumps/ if necessary
@@ -150,6 +153,7 @@ mkacct(File *af, uint pin, char *owner)
 	uint bankid = atoi(af->name);
 	Bank *b = banks[bankid];
 	char *acctid = itoa(b->stats->naccts);
+	banks[bankid]->accounts[b->stats->naccts] = a;
 	initacct(af, nil, acctid, owner, bankid, a);
 	a->pin = pin;
 }
@@ -184,12 +188,39 @@ modacct(Bank *b, uint acctid, uint *pin, char *name)
 		strcpy(a->name, name);
 }
 
-// 
+// Perform authorized transactions -- TODO -- error checking and returning?
 void
-atrans(Bank*, uint, Bank*, uint, uint, uint, char*)
+atrans(uint n₀, uint from, uint n₁, uint to, uint amount, uint pin, char *memo)
 {
-	// TODO
+	// n₀/from → n₁/to of amount with pin and memo…
 
+	if(!(pin == banks[n₀]->accounts[from]->pin))
+		return;
+	
+	banks[n₀]->accounts[from]->balance	-= amount;
+	banks[n₁]->accounts[to]->balance	+= amount;
+	
+	// Create transaction log
+	
+	Transaction *t = emalloc(sizeof(Transaction));
+	
+	t->from		= from;
+	t->to		= to;
+	t->n₀		= n₀;
+	t->n₁		= n₁;
+	t->amt		= amount;
+	t->stamp	= time(0);
+
+	t->memo	= emalloc(BUFSIZE * sizeof(char));
+	strncpy(t->memo, memo, BUFSIZE);
+	
+	banks[n₀]->transactions[banks[n₀]->stats->ntrans] = t;
+	banks[n₀]->stats->ntrans++;
+
+	if(n₀ != n₁){
+		banks[n₁]->transactions[banks[n₁]->stats->ntrans] = t;
+		banks[n₁]->stats->ntrans++;
+	}
 }
 
 /* Cleanup functionality */

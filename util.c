@@ -121,16 +121,18 @@ char*
 bankcmd(File *f, char *str)
 {
 	uint		bankid = atoi(f->name);
-	int			nfields, i;
+	int			nfields;//, i;
 	char		*buf[MAXARGS];
 	char		*cmd;
 
 	nfields = getfields(str, buf, MAXARGS, 1, " 	\n");
 	
 	// Debug output
+	/*
 	fprint(2, "%d fields to bank %d cmd:\n", nfields, bankid);
 	for(i = 0; i < nfields; i++)
 		fprint(2, "%s\n", buf[i]);
+	*/
 	
 	if(nfields < 2)
 		return "err: each command requires at least 1 arg";
@@ -194,7 +196,18 @@ bankcmd(File *f, char *str)
 		if(nfields < 7)
 			return "err: incorrect arg count to atrans";
 		
-		// TODO
+		uint from	= atoi(buf[1]);
+		uint n₁		= atoi(buf[2]);
+		uint to		= atoi(buf[3]);
+		uint amount	= atoi(buf[4]);
+		uint pin	= atoi(buf[5]);
+
+		char memo[BUFSIZE];
+		
+		// TODO -- use all fields after and including 6 for memo
+		strncpy(memo, buf[6], BUFSIZE);
+		
+		atrans(bankid, from, n₁, to, amount, pin, memo);
 	
 	}else
 		return "err: unknown cmd";
@@ -262,7 +275,13 @@ mastercmd(char *str)
 		if(nfields != 6)
 			return "err: incorrect arg count to trans";
 		
-		// TODO
+		uint n₀		= atoi(buf[1]);
+		uint from	= atoi(buf[2]);
+		uint n₁		= atoi(buf[3]);
+		uint to		= atoi(buf[4]);
+		uint amt	= atoi(buf[5]);
+		
+		trans(banks[n₀], from, banks[n₁], to, amt);
 
 	}else if(cmp(cmd, "dump")){
 		// Dumps the bank to bankfs.ndb, copying the existing file, if any to
