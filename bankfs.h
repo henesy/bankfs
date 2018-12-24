@@ -103,7 +103,7 @@ void	trans(Bank*, uint, Bank*, uint, uint);
 void	dump();
 
 // Individual bank ctl logic
-void	mkacct(Bank*, uint, char*);
+void	mkacct(File*, Bank*, uint, char*);
 void	delacct(Bank*, uint);
 void	modacct(Bank*, uint, uint, char*);
 void	atrans(Bank*, uint, Bank*, uint, uint, uint, char*);

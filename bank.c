@@ -140,12 +140,17 @@ dump()
 
 // Individual bank ctl logic
 
-// 
+// Create an account for a bank using a given pin and owner name, initial balance is 0
 void
-mkacct(Bank*, uint, char*)
+mkacct(File *af, Bank *b, uint pin, char *owner)
 {
-	// TODO
+	Account *a = emalloc(sizeof(Account));
 
+	// Create account filesystem
+	char *acctid = itoa(b->stats->naccts);
+	uint bankid = atoi(af->name);
+	initacct(af, nil, acctid, owner, bankid, a);
+	a->pin = pin;
 }
 
 // 

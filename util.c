@@ -142,7 +142,11 @@ bankcmd(File *f, char *str)
 		if(nfields < 3)
 			return "err: incorrect arg count to mkacct";
 		
-		// TODO
+		File *af = walkfile(f, "accounts");
+		fprint(2, "parent: %s us: %s\n", f->parent->name, f->name);
+		uint pin = atoi(buf[1]);
+		
+		mkacct(af, banks[bankid], pin, buf[2]);
 	
 	}else if(cmp(cmd, "delacct")){
 		// Delete an account
