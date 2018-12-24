@@ -41,7 +41,7 @@ Transfmtr(Fmt *f)
 	for(i=0; i < b->stats->ntrans; i++){
 		//TODO: Make safer
 		Transaction *t = b->transactions[i];
-		r += fmtprint(f, "from=%ud\n\tamount=%ud\n\tto=%ud\n\tstamp=%ld\n", t->from, t->amt, t->to, t->stamp);
+		r += fmtprint(f, "from=%ud/%ud\n\tamount=%ud\n\tto=%ud/%ud\n\tmemo=%s\n\tstamp=%ld\n", t->n₀, t->from, t->amt, t->n₁, t->to, t->memo, t->stamp);
 	}
 	return r;
 }

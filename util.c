@@ -53,7 +53,7 @@ readfile(Fid* fid)
 	}else if(cmp(name, "transactions")){
 		// Transaction history for a bank
 		Bank* b = f->parent->aux;
-		snprint(buf, BUFSIZE*BUFSIZE, "%Τ\n", b);
+		snprint(buf, BUFSIZE*BUFSIZE, "%Τ", b);
 
 	}else{
 		// Return catch-all
