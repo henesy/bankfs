@@ -123,13 +123,35 @@ mkbank(char *user)
 
 // Transfer *amount* from n₀/from to n₁/to
 void
-trans(Bank *n₀, uint from, Bank *n₁, uint to, uint amount)
+trans(uint n₀, uint from, uint n₁, uint to, uint amount)
 {
-	Account *a₀ = n₀->accounts[from];
-	Account *a₁ = n₁->accounts[to];
+	Account *a₀ = banks[n₀]->accounts[from];
+	Account *a₁ = banks[n₁]->accounts[to];
 	
 	a₀->balance -= amount;
 	a₁->balance += amount;
+	
+	// Create transaction log
+	
+	Transaction *t = emalloc(sizeof(Transaction));
+	
+	t->from		= from;
+	t->to		= to;
+	t->n₀		= n₀;
+	t->n₁		= n₁;
+	t->amt		= amount;
+	t->stamp	= time(0);
+
+	t->memo	= emalloc(BUFSIZE * sizeof(char));
+	strncpy(t->memo, "FORCED ☹", BUFSIZE);
+	
+	banks[n₀]->transactions[banks[n₀]->stats->ntrans] = t;
+	banks[n₀]->stats->ntrans++;
+
+	if(n₀ != n₁){
+		banks[n₁]->transactions[banks[n₁]->stats->ntrans] = t;
+		banks[n₁]->stats->ntrans++;
+	}
 }
 
 // Dump everything to bankfs.ndb, backing up existing files to ./dumps/ if necessary

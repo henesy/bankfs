@@ -62,7 +62,9 @@ struct Bank {
 	Account			**accounts;		// Account table for bank
 };
 
-/* Let the compiler properly check our new Fmts */
+/* let the compiler properly check our new fmt's */
+
+// Capitals are for writing to ndb file, lowers are for printing for users
 #pragma varargck type "Β" Bank*
 #pragma varargck type "β" Bank*
 #pragma varargck type "Σ" Stats*
@@ -102,7 +104,7 @@ void	initacct(File*, char*, char*, char*, uint, Account*);
 // Master ctl logic
 void	delbank(Bank*, uint);
 void	mkbank(char*);
-void	trans(Bank*, uint, Bank*, uint, uint);
+void	trans(uint, uint, uint, uint, uint);
 void	dump();
 
 // Individual bank ctl logic

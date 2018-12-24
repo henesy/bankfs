@@ -281,7 +281,7 @@ mastercmd(char *str)
 		uint to		= atoi(buf[4]);
 		uint amt	= atoi(buf[5]);
 		
-		trans(banks[n₀], from, banks[n₁], to, amt);
+		trans(n₀, from, n₁, to, amt);
 
 	}else if(cmp(cmd, "dump")){
 		// Dumps the bank to bankfs.ndb, copying the existing file, if any to
