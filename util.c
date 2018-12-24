@@ -146,6 +146,7 @@ bankcmd(File *f, char *str)
 		// fprint(2, "parent: %s us: %s\n", f->parent->name, f->name);
 		uint pin = atoi(buf[1]);
 		
+		// TODO -- use all fields past and including 2 as name...
 		mkacct(af, pin, buf[2]);
 	
 	}else if(cmp(cmd, "delacct")){
@@ -162,10 +163,30 @@ bankcmd(File *f, char *str)
 	}else if(cmp(cmd, "modacct")){
 		// Modify an account
 		// modacct id pin name…
+		// Pass a paramiter as <nil> to indicate a nil entry
 		if(nfields < 4)
 			return "err: incorrect arg count to modacct";
 		
-		// TODO
+		uint acctid = atoi(buf[1]);
+		uint *pin = nil;
+		char *name = nil;
+		
+		if(!cmp(buf[2], "<nil>")){
+			pin = emalloc(sizeof(uint));
+			*pin = atoi(buf[2]);
+		}
+		
+		if(!cmp(buf[3], "<nil>")){
+			name = emalloc(BUFSIZE * sizeof(char));
+			strncpy(name, buf[3], BUFSIZE);
+		}
+		
+		modacct(banks[bankid], acctid, pin, name);
+		
+		if(pin)
+			free(pin);
+		if(name)
+			free(name);
 	
 	}else if(cmp(cmd, "atrans")){
 		// Perform an authorized transfer

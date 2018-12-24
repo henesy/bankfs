@@ -160,7 +160,7 @@ delacct(File *af, Bank *b, uint acctid)
 {
 	char buf[BUFSIZE];
 
-	// TODO -- Should be garbage collected…
+	Acctdestroy(b->accounts[acctid]);
 	
 	b->accounts[acctid] = nil;
 	
@@ -172,12 +172,16 @@ delacct(File *af, Bank *b, uint acctid)
 	b->stats->naccts--;
 }
 
-// 
+// Perform modifications on an account -- if non-nil, value is set
 void
-modacct(Bank*, uint, uint, char*)
+modacct(Bank *b, uint acctid, uint *pin, char *name)
 {
-	// TODO
+	Account *a = b->accounts[acctid];
 
+	if(pin)
+		a->pin = *pin;
+	if(name)
+		strcpy(a->name, name);
 }
 
 // 

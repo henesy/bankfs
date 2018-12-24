@@ -105,7 +105,7 @@ void	dump();
 // Individual bank ctl logic
 void	mkacct(File*, uint, char*);
 void	delacct(File*, Bank*, uint);
-void	modacct(Bank*, uint, uint, char*);
+void	modacct(Bank*, uint, uint*, char*);
 void	atrans(Bank*, uint, Bank*, uint, uint, uint, char*);
 // void	dep(Bank*, uint, uint, uint, char*);
 
