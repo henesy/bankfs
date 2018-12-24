@@ -103,11 +103,11 @@ void	trans(Bank*, uint, Bank*, uint, uint);
 void	dump();
 
 // Individual bank ctl logic
-void	mkacct(File*, Bank*, uint, char*);
-void	delacct(Bank*, uint);
+void	mkacct(File*, uint, char*);
+void	delacct(File*, Bank*, uint);
 void	modacct(Bank*, uint, uint, char*);
 void	atrans(Bank*, uint, Bank*, uint, uint, uint, char*);
-void	dep(Bank*, uint, uint, uint, char*);
+// void	dep(Bank*, uint, uint, uint, char*);
 
 // Prototypes for cleanup functions
 void	Bankdestroy(Bank*);

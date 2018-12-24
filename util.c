@@ -143,10 +143,10 @@ bankcmd(File *f, char *str)
 			return "err: incorrect arg count to mkacct";
 		
 		File *af = walkfile(f, "accounts");
-		fprint(2, "parent: %s us: %s\n", f->parent->name, f->name);
+		// fprint(2, "parent: %s us: %s\n", f->parent->name, f->name);
 		uint pin = atoi(buf[1]);
 		
-		mkacct(af, banks[bankid], pin, buf[2]);
+		mkacct(af, pin, buf[2]);
 	
 	}else if(cmp(cmd, "delacct")){
 		// Delete an account
@@ -154,7 +154,10 @@ bankcmd(File *f, char *str)
 		if(nfields != 2)
 			return "err: incorrect arg count to delacct";
 		
-		// TODO
+		File *af = walkfile(f, "accounts");
+		uint acctid = atoi(buf[1]);
+		
+		delacct(af, banks[bankid], acctid);
 	
 	}else if(cmp(cmd, "modacct")){
 		// Modify an account

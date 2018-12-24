@@ -142,23 +142,33 @@ dump()
 
 // Create an account for a bank using a given pin and owner name, initial balance is 0
 void
-mkacct(File *af, Bank *b, uint pin, char *owner)
+mkacct(File *af, uint pin, char *owner)
 {
 	Account *a = emalloc(sizeof(Account));
 
 	// Create account filesystem
-	char *acctid = itoa(b->stats->naccts);
 	uint bankid = atoi(af->name);
+	Bank *b = banks[bankid];
+	char *acctid = itoa(b->stats->naccts);
 	initacct(af, nil, acctid, owner, bankid, a);
 	a->pin = pin;
 }
 
-// 
+// Delete an account by id -- removes both file tree and data structure
 void
-delacct(Bank*, uint)
+delacct(File *af, Bank *b, uint acctid)
 {
-	// TODO
+	char buf[BUFSIZE];
 
+	// Should be garbage collected…
+	b->accounts[acctid] = nil;
+	
+	sprint(buf, "%ud", acctid);
+	
+	File *f = walkfile(af, buf);
+	rmdir(f);
+	
+	b->stats->naccts--;
 }
 
 // 
@@ -176,15 +186,6 @@ atrans(Bank*, uint, Bank*, uint, uint, uint, char*)
 	// TODO
 
 }
-
-// 
-void
-dep(Bank*, uint, uint, uint, char*)
-{
-	// TODO
-
-}
-
 
 /* Cleanup functionality */
 
