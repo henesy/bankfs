@@ -175,14 +175,6 @@ bankcmd(File *f, char *str)
 		
 		// TODO
 	
-	}else if(cmp(cmd, "dep")){
-		// Deposit/Withdraw funds
-		// dep id ± amount memo…
-		if(nfields < 5)
-			return "err: incorrect arg count to dep";
-		
-		// TODO
-	
 	}else
 		return "err: unknown cmd";
 

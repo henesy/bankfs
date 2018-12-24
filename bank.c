@@ -160,7 +160,8 @@ delacct(File *af, Bank *b, uint acctid)
 {
 	char buf[BUFSIZE];
 
-	// Should be garbage collected…
+	// TODO -- Should be garbage collected…
+	
 	b->accounts[acctid] = nil;
 	
 	sprint(buf, "%ud", acctid);
