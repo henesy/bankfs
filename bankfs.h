@@ -64,7 +64,7 @@ struct Bank {
 
 /* let the compiler properly check our new fmt's */
 
-// Capitals are for writing to ndb file, lowers are for printing for users
+// Lowers are for writing to ndb file, capitals are for printing for users
 #pragma varargck type "Β" Bank*
 #pragma varargck type "β" Bank*
 #pragma varargck type "Σ" Stats*
@@ -93,6 +93,7 @@ char*	itoa(int);
 void*	emalloc(ulong);
 char*	bankcmd(File*, char*);
 char*	mastercmd(char*);
+Stats	masterstats(void);
 
 // File cleanup routines
 void	rmdir(File*);

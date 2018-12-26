@@ -22,16 +22,7 @@ readfile(Fid* fid)
 
 	if(cmp(name, "stats") && pisroot(f)){
 		// Return the text from the master stats file
-		Stats s = {((Stats*) f->aux)->nbanks, 0, 0};
-		int i;
-		
-		// TODO -- this really shouldn't be -1
-		for(i = 0; i < MAXBANKS; i++){
-			if(banks[i] != nil){
-				s.naccts += banks[i]->stats->naccts;
-				s.ntrans += banks[i]->stats->ntrans;
-			}
-		}	
+		Stats s = masterstats();	
 		
 		snprint(buf, BUFSIZE*BUFSIZE, "%Σ", &s);
 
@@ -359,4 +350,21 @@ emalloc(ulong sz)
 	if(!ptr)
 		sysfatal("ON NO MALLOC FAILED FUCK");
 	return ptr;
+}
+
+// Generates, on demand, the master statistics for the given instant
+Stats
+masterstats(void)
+{
+	Stats s = {stats->nbanks, 0, 0};
+	int i;
+	
+	for(i = 0; i < MAXBANKS; i++){
+		if(banks[i] != nil){
+			s.naccts += banks[i]->stats->naccts;
+			s.ntrans += banks[i]->stats->ntrans;
+		}
+	}
+
+	return s;
 }
