@@ -21,10 +21,8 @@ readfile(Fid* fid)
 		print("Read⇒ File->name: %s ¦ Qid.path: %ulld ¦ Parent->name: %s\n", name, q.path, f->parent->name);
 
 	if(cmp(name, "stats") && pisroot(f)){
-		// Return the text from the master stats file
-		Stats s = masterstats();	
-		
-		snprint(buf, BUFSIZE*BUFSIZE, "%Σ", &s);
+		// Return the text from the master stats file	
+		snprint(buf, BUFSIZE*BUFSIZE, "%Ω", masterstats());
 
 	}else if(cmp(name, "stats")){
 		// Individual bank statistics
@@ -275,12 +273,14 @@ mastercmd(char *str)
 		trans(n₀, from, n₁, to, amt);
 
 	}else if(cmp(cmd, "dump")){
-		// Dumps the bank to bankfs.ndb, copying the existing file, if any to
-		// ./dump/bankfs.ndb.$date
-		// where $date is time since the epoch in the local time zone, as per `date -n`
-		// Since one arg is required, the arg is ignored. Do: dump <nil> to emphasize
+		/*	
+			Dumps the bank to bankfs.ndb, copying the existing file, if any to
+			./dump/bankfs.ndb.$date
+			where $date is time since the epoch in the local time zone, as per `date -n`
+			Since one arg is required, the arg is ignored. Do: dump <nil> to emphasize
+		*/
 		
-		// TODO
+		dump();
 	
 	}else
 		return "err: unknown cmd";

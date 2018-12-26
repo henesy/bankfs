@@ -69,9 +69,12 @@ struct Bank {
 #pragma varargck type "β" Bank*
 #pragma varargck type "Σ" Stats*
 #pragma varargck type "σ" Stats*
-#pragma varargck type "Ω" Stats*
+#pragma varargck type "Ω" Stats
+#pragma varargck type "ω" Stats
 #pragma varargck type "Τ" Bank*
-#pragma varargck type "τ" Bank*
+#pragma varargck type "τ" Transaction*
+#pragma varargck type "Α" Account*
+#pragma varargck type "α" Account*
 
 /* horrible, horrible global variables */
 
@@ -106,7 +109,7 @@ void	initacct(File*, char*, char*, char*, uint, Account*);
 void	delbank(Bank*, uint);
 void	mkbank(char*);
 void	trans(uint, uint, uint, uint, uint);
-void	dump();
+void	dump(void);
 
 // Individual bank ctl logic
 void	mkacct(File*, uint, char*);

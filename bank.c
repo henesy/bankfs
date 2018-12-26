@@ -158,8 +158,64 @@ trans(uint n₀, uint from, uint n₁, uint to, uint amount)
 void
 dump()
 {
-	// TODO
+	int fd, dirfd, i, n = 0;
+	
+	// Open ./dumps/, create if needed
+	dirfd = open("./dumps", OREAD);
+	if(dirfd < 0){
+		dirfd = create("./dumps", OREAD, DMDIR | 0770);
+		// print("err is %r\n");
+		if(dirfd < 0)
+			sysfatal("err: failed to create dumps folder!");
+	}
+	
+	// Test for an existing ./bankfs.ndb
+	fd = open("./bankfs.ndb", OWRITE);
+	if(fd > 0){
+		// File exists, move it to ./dumps/bankfs.ndb.$time
+		close(fd);
 
+		char to[35]; // chars of ./dumps/1545865537.bankfs.ndb
+		
+		snprint(to, 35, "./dumps/%ld.bankfs.ndb", time(0));
+	
+		char *argv[] = {"/bin/mv", "bankfs.ndb", to, nil};
+		
+		fprint(2, "{%s, %s, %s}\n", argv[0], argv[1], argv[2]);
+		
+		int pid;
+		pid = fork();
+
+		switch(pid){
+		case 0:
+			// Child
+			exec(argv[0], argv);
+			break;
+		default:
+			;
+		}
+	}
+
+	fd = create("./bankfs.ndb", OWRITE, 0660);
+	if(fd < 0)
+		sysfatal("err: failed to create bankfs.ndb!");
+	
+	// Print master stats
+	fprint(fd, "%ω\n", masterstats());
+	
+	// Print banks to file -- fmtinstall for β should handle calling other fmt 
+	for(i = 0; i < MAXBANKS && n < stats->nbanks; i++){
+		if(banks[i] == nil)
+			continue;
+		
+		// TODO -- notarize bankid in some better manner?
+		fprint(fd, "bankid=%d %β\n", i, banks[i]);
+		n++;
+	}
+
+	// Tear down
+	close(fd);
+	close(dirfd);
 }
 
 

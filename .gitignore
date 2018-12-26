@@ -1,3 +1,6 @@
 *.[8qkv5967o]
 *.acid
 [8qkv5967o].out
+*.ndb
+dumps/*
+
