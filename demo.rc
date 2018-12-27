@@ -1,6 +1,8 @@
 #!/bin/rc
 # Demonstrates a basic use of bankfs
 
+rfork n;
+
 rm -r dumps bankfs.ndb
 mk nuke
 mk
