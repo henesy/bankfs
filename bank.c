@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 #include <fcall.h>
 #include <thread.h>
 #include <auth.h>
@@ -189,7 +190,8 @@ dump()
 			exec(argv[0], argv);
 			break;
 		default:
-			;
+			// TODO -- some kind of race condition, bad fix
+			sleep(250);
 		}
 	}
 
