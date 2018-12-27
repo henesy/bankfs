@@ -3,10 +3,13 @@
 
 rfork n;
 
+
+# Clean up environment
 rm -r dumps bankfs.ndb
 mk nuke
 mk
 
+# Start server as us
 6.out -u $user -g $user
 
 # Create a backup file
@@ -24,5 +27,6 @@ echo atrans 1 0 0 25 1234 ducks >> /mnt/bankfs/banks/0/ctl
 # Create another backup file, forcing the old one into the ./dumps/ folder
 echo dump nil >> /mnt/bankfs/ctl
 
+# Show results
 ll dumps
 cat bankfs.ndb

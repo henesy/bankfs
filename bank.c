@@ -160,6 +160,7 @@ void
 dump()
 {
 	int fd, dirfd, i, n = 0;
+	Biobuf *bp;
 	
 	// Open ./dumps/, create if needed
 	dirfd = open("./dumps", OREAD);
@@ -199,8 +200,10 @@ dump()
 	if(fd < 0)
 		sysfatal("err: failed to create bankfs.ndb!");
 	
+	bp = Bfdopen(fd, OWRITE);
+	
 	// Print master stats
-	fprint(fd, "%ω\n", masterstats());
+	Bprint(bp, "%ω\n", masterstats());
 	
 	// Print banks to file -- fmtinstall for β should handle calling other fmt 
 	for(i = 0; i < MAXBANKS && n < stats->nbanks; i++){
@@ -208,11 +211,13 @@ dump()
 			continue;
 		
 		// TODO -- notarize bankid in some better manner?
-		fprint(fd, "bankid=%d\n%β\n", i, banks[i]);
+		Bprint(bp, "bankid=%d\n%β\n", i, banks[i]);
 		n++;
 	}
 
 	// Tear down
+	Bflush(bp);
+	Bterm(bp);
 	close(fd);
 	close(dirfd);
 }
