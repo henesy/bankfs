@@ -3,7 +3,6 @@
 
 rfork n;
 
-
 # Clean up environment
 rm -r dumps bankfs.ndb
 mk nuke
@@ -30,3 +29,51 @@ echo dump nil >> /mnt/bankfs/ctl
 # Show results
 ll dumps
 cat bankfs.ndb
+
+# === Output ===
+# tenshi% demo.rc
+# rm -f *.[0568qv] [0568qv].out y.tab.? lex.yy.c y.debug y.output *.acid bankfs $CLEANFILES
+# 6c -FTVw main.c
+# 6c -FTVw util.c
+# 6c -FTVw bank.c
+# 6c -FTVw printing.c
+# 6l  -o 6.out main.6 util.6 bank.6 printing.6
+# Serving on: <nil> and mounting to: /mnt/bankfs
+# user sent to master: dump nil
+# user sent to bank 0: mkacct 1234 seh
+# user sent to master: trans 0 0 0 1 100
+# user sent to bank 0: atrans 1 0 0 25 1234 ducks
+# user sent to master: dump nil
+# --rw-rw---- M 8338 seh seh 115 Dec 26 18:53 1545872034.bankfs.ndb
+# nbanks=1 naccts=2 ntrans=2
+# 
+# bankid=0
+# 	naccts=2
+# 	ntrans=2
+# 
+# acctid=0
+# 	bank=0
+# 	name=reserve
+# 	balance=4999925
+# 	pin=0
+# 
+# acctid=1
+# 	bank=0
+# 	name=seh
+# 	balance=75
+# 	pin=1234
+# 
+# transid=0
+# 	from=0/0
+# 	amount=100
+# 	to=0/1
+# 	memo=FORCED ☹
+# 	stamp=1545872034
+# 
+# transid=1
+# 	from=0/1
+# 	amount=25
+# 	to=0/0
+# 	memo=ducks
+# 	stamp=1545872034
+#
