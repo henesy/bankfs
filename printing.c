@@ -81,9 +81,13 @@ Masterfmtr(Fmt *f)
 int
 Statsfmtw(Fmt *f)
 {
+	Stats *s;
 	int r;
 	
 	r = fmtprint(f, "");
+	s = va_arg(f->args, Stats*);
+	
+	r += fmtprint(f, "\tnaccts=%ud\n\tntrans=%ud\n", s->naccts, s->ntrans);
 
 	return r;
 }
@@ -92,9 +96,13 @@ Statsfmtw(Fmt *f)
 int
 Acctfmtw(Fmt *f)
 {
+	Account *a;
 	int r;
 	
 	r = fmtprint(f, "");
+	a = va_arg(f->args, Account*);
+	
+	r += fmtprint(f, "\tbank=%ud\n\tname=%s\n\tbalance=%d\n\tpin=%ud\n", a->bank, a->name, a->balance, a->pin);
 	
 	return r;
 }
@@ -109,7 +117,7 @@ Transfmtw(Fmt *f)
 	r = fmtprint(f, "");
 	t = va_arg(f->args, Transaction*);
 	
-	r += fmtprint(f, "from=%ud/%ud\n\tamount=%ud\n\tto=%ud/%ud\n\tmemo=%s\n\tstamp=%ld\n", t->n₀, t->from, t->amt, t->n₁, t->to, t->memo, t->stamp);
+	r += fmtprint(f, "\tfrom=%ud/%ud\n\tamount=%ud\n\tto=%ud/%ud\n\tmemo=%s\n\tstamp=%ld\n", t->n₀, t->from, t->amt, t->n₁, t->to, t->memo, t->stamp);
 	
 	return r;
 }
@@ -139,7 +147,7 @@ Bankfmtw(Fmt *f)
 		if(b->accounts[i] == nil)
 			continue;
 
-		r += fmtprint(f, "%α\n", b->accounts[i]);
+		r += fmtprint(f, "acctid=%d\n%α\n", i, b->accounts[i]);
 		n++;
 	}
 	
@@ -148,7 +156,7 @@ Bankfmtw(Fmt *f)
 		if(b->transactions[i] == nil)
 			continue;
 
-		r += fmtprint(f, "%τ\n", b->transactions[i]);
+		r += fmtprint(f, "transid=%d\n%τ\n", i, b->transactions[i]);
 		n++;
 	}
 	

@@ -181,12 +181,9 @@ dump()
 	
 		char *argv[] = {"/bin/mv", "bankfs.ndb", to, nil};
 		
-		fprint(2, "{%s, %s, %s}\n", argv[0], argv[1], argv[2]);
-		
-		int pid;
-		pid = fork();
+		// fprint(2, "{%s, %s, %s}\n", argv[0], argv[1], argv[2]);
 
-		switch(pid){
+		switch(fork()){
 		case 0:
 			// Child
 			exec(argv[0], argv);
@@ -209,7 +206,7 @@ dump()
 			continue;
 		
 		// TODO -- notarize bankid in some better manner?
-		fprint(fd, "bankid=%d %β\n", i, banks[i]);
+		fprint(fd, "bankid=%d\n%β\n", i, banks[i]);
 		n++;
 	}
 
