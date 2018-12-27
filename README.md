@@ -55,11 +55,21 @@ An example session:
 
 Once a bankfs is started and mounted somewhere, say at `/mnt/bankfs`, one can export the filesystem with authentication required as per:
 
-	bankfs -s bankfs -u $user -g $user
-	chmod a+rw /srv/bankfs
-	aux/listen1 -v tcp!*!3656 /bin/exportfs -S /srv/bankfs -a
+	bankfs -s bankfs -u glenda -g sys
+	#	chmod a+rw /srv/bankfs # should not be necessary
+	aux/listen1 -tv tcp!*!3656 /bin/exportfs -a
 
 Note that authentication won't work unless this is performed from a system with auth available. 
+
+To mount from Linux:
+
+	factotum -n
+	9import -s bank 'tcp!bank.iseage.local!3656' /mnt/bankfs ~/n/bank
+
+If you want to read and write from Linux and can't from the mount, do:
+
+	echo hi | 9p write bank/ctl
+	9p read bank/stats
 
 To mount from Plan 9:
 
