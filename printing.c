@@ -4,6 +4,8 @@
 #include <thread.h>
 #include <auth.h>
 #include <9p.h>
+#include <bio.h>
+#include <ndb.h>
 #include "bankfs.h"
 
 // The documentation for these methods is found in fmtinstall(2)

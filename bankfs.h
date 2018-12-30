@@ -105,6 +105,11 @@ void	rmdir(File*);
 void	initbank(File*, char*, uint, char**);
 void	initacct(File*, char*, char*, char*, uint, Account*);
 
+// Prototypes for NDB functions
+Stats* readstats(Ndbtuple*);
+void readndb(char*);
+Account* readaccount(Ndbtuple*);
+
 // Master ctl logic
 void	delbank(Bank*, uint);
 void	mkbank(char*);

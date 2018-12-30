@@ -8,7 +8,8 @@ OFILES = main.$O \
 			util.$O \
 			bank.$O \
 			printing.$O \
+			ndb.$O \
 
-HFILES = bankfs.h
+HFILES = bankfs.h 
 
 </sys/src/cmd/mkone

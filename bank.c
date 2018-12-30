@@ -5,6 +5,7 @@
 #include <thread.h>
 #include <auth.h>
 #include <9p.h>
+#include <ndb.h>
 #include "bankfs.h"
 
 /* bank functions */

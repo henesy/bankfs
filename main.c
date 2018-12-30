@@ -4,6 +4,8 @@
 #include <thread.h>
 #include <auth.h>
 #include <9p.h>
+#include <bio.h>
+#include <ndb.h>
 #include "bankfs.h"
 
 
@@ -128,8 +130,7 @@ main(int argc, char *argv[])
 	// Load from database here
 
 	if(ndb){
-		// We are loading from database
-		// TODO
+		readndb(ndb);
 	}else{
 		// We are not loading from database -- initialize
 		// Add root as /banks/0
