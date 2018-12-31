@@ -1,0 +1,13 @@
+# Generate postscript files
+
+FILES = bankfs.ms
+
+all:V: $FILES
+
+%.ms:V: 
+	troff -ms $stem.ms | dpost -f > $stem.ps
+
+clean:V:
+	rm -f *.ps
+
+nuke:V: clean
