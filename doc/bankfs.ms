@@ -126,7 +126,7 @@ account.
 Protocol Specification
 
 .PP
-Output format on reads are provided in
+Output format on reads is provided in the
 .I ndb(2)
 format.
 
