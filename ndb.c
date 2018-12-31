@@ -7,6 +7,27 @@
 #include <9p.h>
 #include "bankfs.h"
 
+/* Search through all tuples with bank=bankid tuple to count accounts */
+int
+countaccts(Ndb *n, uint bankid)
+{
+	int i = 1;
+	Ndbs s;
+	char* id;
+
+	id = smprint("%ud", bankid);
+	if(ndbsearch(n, &s, "bank", id) == nil){
+		free(id);
+		return 0;
+	}
+
+	while(ndbsnext(&s, "bank", id) != nil)
+		i++;
+
+	free(id);
+	return i;
+}
+
 
 void
 readndb(char* file)
