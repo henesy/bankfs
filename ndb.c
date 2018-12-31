@@ -7,35 +7,13 @@
 #include <9p.h>
 #include "bankfs.h"
 
-/* Search through all tuples with bank=bankid tuple to count accounts */
-int
-countaccts(Ndb *n, uint bankid)
-{
-	int i = 1;
-	Ndbs s;
-	char* id;
-
-	id = smprint("%ud", bankid);
-	if(ndbsearch(n, &s, "bank", id) == nil){
-		free(id);
-		return 0;
-	}
-
-	while(ndbsnext(&s, "bank", id) != nil)
-		i++;
-
-	free(id);
-	return i;
-}
-
-
 void
-readndb(char* file)
+readndb(File *root, char* file)
 {
 	Ndbtuple *t;
 	Ndb *n;
-	int i, j;
-	i = j = 0;
+	int lastid = 0;
+	char *lastuser = nil;
 
 	n = ndbopen(file);
 	if(n == nil)
@@ -46,20 +24,27 @@ readndb(char* file)
 	
 	Bank *b = nil;
 	while((t = ndbparse(n)) != nil){
-		if(ndbfindattr(t,t,"bankid")){
+		if((t = ndbfindattr(t,t,"bankid")) != nil){
+			lastid = atoi(t->val);
+			lastuser = strcat("team", t->val);
 			if(b != nil)
-				banks[i++] = b;
-			b = malloc(sizeof(Bank));
+				initbankfs(root, lastid, lastuser, b);
+			b = initbank();
+			free(b->stats);
 			b->stats = readstats(t);
-			j = 0; //reset account count
-		}else if(ndbfindattr(t,t,"acctid")){
+		}else if((t = ndbfindattr(t,t,"acctid")) != nil){
 			if(b == nil)
 				sysfatal("Orphaned account tuple with no bank");
-			//TODO: Realloc more efficently
-			b->accounts = realloc(b->accounts, sizeof(Account*) * j+1);
-			b->accounts[j++] = readaccount(t);
+			b->accounts[atoi(t->val)] = readacct(t);
+		}else if((t = ndbfindattr(t,t,"transid")) != nil){
+			if(b == nil)
+				sysfatal("Orphaned transaction tuple with no bank");
+			b->transactions[atoi(t->val)] = readtrans(t);
 		}
 	}
+	//We order banks first, so we still have one left to add at EOF
+	if(b != nil)
+		initbankfs(root, lastid, lastuser, b);
 }
 
 //Returns Stats object for master from bankfs.ndb
@@ -89,7 +74,7 @@ readstats(Ndbtuple *t)
 
 //readaccount reads tuple entry into malloced Account object
 Account*
-readaccount(Ndbtuple *t)
+readacct(Ndbtuple *t)
 {
 	Account *acct = malloc(sizeof(Account));
 
@@ -113,4 +98,44 @@ readaccount(Ndbtuple *t)
 	acct->pin = atoi(t->val);
 
 	return acct;
+}
+
+Transaction*
+readtrans(Ndbtuple *t)
+{
+	Transaction *trans = mallocz(sizeof(Transaction), 1);
+	char *buf[2];
+
+	t = ndbfindattr(t, t, "from");
+	if(t == nil)
+		sysfatal("Could not find from in transaction tuple");
+	if(getfields(t->val, buf, 2, 0, "/") != 2)
+		sysfatal("Bad format of from entry in transaction tuple");
+	trans->n₀ = atoi(buf[0]);
+	trans->from = atoi(buf[1]);
+
+	t = ndbfindattr(t, t, "to");
+	if(t == nil)
+		sysfatal("Could not find to in transaction tuple");
+	if(getfields(t->val, buf, 2, 0, "/") != 2)
+		sysfatal("Bad format of to entry in transaction tuple");
+	trans->n₀ = atoi(buf[0]);
+	trans->to = atoi(buf[1]);
+
+	t = ndbfindattr(t, t, "amount");
+	if(t == nil)
+		sysfatal("Could not find amount in transaction tuple");
+	trans->amt = atoi(t->val);
+
+	t = ndbfindattr(t, t, "memo");
+	if(t == nil)
+		sysfatal("Could not find memo in transaction tuple");
+	trans->memo = strdup(t->val);
+	
+	t = ndbfindattr(t, t, "stamp");
+	if(t == nil)
+		sysfatal("Could not find stamp in transaction tuple");
+	trans->stamp = atol(t->val);
+
+	return trans;
 }

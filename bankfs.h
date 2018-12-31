@@ -102,13 +102,16 @@ Stats	masterstats(void);
 void	rmdir(File*);
 
 // Prototypes for bank calls
-void	initbank(File*, char*, uint, char**);
-void	initacct(File*, char*, char*, char*, uint, Account*);
+Bank*		initbank(void);
+Account* 	initacct(char*, uint, int, uint);
+void		initbankfs(File*, int, char*, Bank*);
+void		initacctfs(File*, int, char*, Account*);
 
 // Prototypes for NDB functions
-Stats* readstats(Ndbtuple*);
-void readndb(char*);
-Account* readaccount(Ndbtuple*);
+Stats* 			readstats(Ndbtuple*);
+void 			readndb(File*, char*);
+Account*		readacct(Ndbtuple*);
+Transaction*	readtrans(Ndbtuple*);
 
 // Master ctl logic
 void	delbank(Bank*, uint);

@@ -28,9 +28,28 @@
 						n…/
 */
 
-// Initialize a bank filetree -- acctnames must be size naccts -- requires an existing directory, root
 void
-initbank(File* root, char *user, uint naccts, char **acctnames)
+initbankfs(File *root, int bankid, char *user, Bank *bank)
+{
+	int i, j;
+
+	stats->nbanks++;
+	banks[bankid] = bank;	
+	root->aux = bank;
+	
+	createfile(root, "transactions", user, OREADALL, bank->transactions);
+	createfile(root, "stats", user, OREADALL, bank->stats);
+	createfile(root, "ctl", user, 0200, nil);
+	// Makes accounts/ folder
+	File *acctf = createfile(root, "accounts", user, DMDIR|ORDEXALL, bank->accounts);
+
+	for(i = j = 0; i < MAXACCTS; i++)
+		if(bank->accounts[i] != nil)
+			initacctfs(acctf, j++, user, bank->accounts[i]);
+}
+
+Bank*
+initbank(void)
 {
 	// Allocate bank
 	Bank		*bank 	= mallocz(sizeof(Bank), 1);
@@ -41,45 +60,34 @@ initbank(File* root, char *user, uint naccts, char **acctnames)
 	bank->stats			= s;
 	bank->accounts		= accts;
 
-	// TODO -- might truncate, don't use atoi for uint
-	uint bankid = atoi(root->name);
-
-	stats->nbanks++;
-	banks[bankid] = bank;
-
-	// Create transactions & ctl files
-
-	root->aux = bank;
-	createfile(root, "transactions", user, OREADALL, trans);
-	createfile(root, "stats", user, OREADALL, stats);
-	createfile(root, "ctl", user, 0200, nil);
-	// Makes accounts/ folder
-	File *acctf = createfile(root, "accounts", user, DMDIR|ORDEXALL, accts);
-
-	int i;
-	for(i = 0; i < naccts; i++){
-		// Make accounts/N for each desired
-		accts[i] = mallocz(sizeof(Account), 1);
-		initacct(acctf, user, itoa(i), acctnames[i], bankid, accts[i]);
-	}
+	return bank;
 }
 
-// Initialize an account filetree -- makes itself a directory
-void
-initacct(File *root, char *user, char *name, char *owner, uint bankid, Account *acct)
+/*Initialize Account struct */
+Account*
+initacct(char *owner, uint bankid, int balance, uint pin)
 {
+	Account *acct = mallocz(sizeof(Account), 1);
+
 	acct->name = mallocz(strlen(owner)+1 * sizeof(char), 1);
 	strcpy(acct->name, owner);
-	acct->balance = 0;
+	acct->balance = balance;
 	acct->bank = bankid;
-	acct->pin = 0;
+	acct->pin = pin;
 
-	banks[bankid]->stats->naccts++;
-	
-	File *acctdir = createfile(root, name, user, DMDIR|ORDEXALL, acct);
+	return acct;
+}
 
+/*Initalize Account file tree*/
+void
+initacctfs(File *root, int acctid, char* user, Account *acct)
+{
+	char *id;
+	id = smprint("%d", acctid);
+	File *acctdir = createfile(root, id, user, DMDIR|ORDEXALL, acct);
 	createfile(acctdir, "name", user, OREADALL, nil);
 	createfile(acctdir, "balance", user, OREADALL, nil);
+	free(id);
 }
 
 /* Functions called by ctl files */
@@ -105,22 +113,24 @@ mkbank(char *user)
 {
 	// TODO
 	File	*f;
-	char*	bankid = nil;
-	int		i;
+	int		i, bankid;
+	Bank *b;
 	
+	bankid = -1;
 	for(i = 0; i < MAXBANKS; i++)
 		if(banks[i] == nil){
-			bankid = itoa(i);
+			bankid = i;
 			break;
 		}
 	
-	if(bankid == nil){
+	if(bankid == -1){
 		werrstr("err: out of bankid's; no bank made.");
 		return;
 	}
 	
-	f = createfile(banksf, bankid, user, DMDIR|ORDEXALL|OWRITE, nil);
-	initbank(f, user, 0, nil);
+	f = createfile(banksf, itoa(bankid), user, DMDIR|ORDEXALL|OWRITE, nil);
+	b = initbank();
+	initbankfs(f, bankid, user, b);
 }
 
 // Transfer *amount* from n₀/from to n₁/to
@@ -230,15 +240,17 @@ dump()
 void
 mkacct(File *af, uint pin, char *owner)
 {
-	Account *a = emalloc(sizeof(Account));
-
-	// Create account filesystem
+	Account *a;
+	uint acctid;
 	uint bankid = atoi(af->name);
 	Bank *b = banks[bankid];
-	char *acctid = itoa(b->stats->naccts);
-	banks[bankid]->accounts[b->stats->naccts] = a;
-	initacct(af, nil, acctid, owner, bankid, a);
-	a->pin = pin;
+
+	for(acctid = 0; acctid < MAXACCTS; acctid++)
+		if(b->accounts[acctid] == nil)
+			break;
+
+	a = initacct(owner, bankid, 0, pin);
+	initacctfs(af, acctid, nil, a);
 }
 
 // Delete an account by id -- removes both file tree and data structure
