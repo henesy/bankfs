@@ -1,6 +1,7 @@
 # Generate postscript files
 
-FILES = bankfs.ms
+FILES = bankfs.ms \
+		bank2node.ms
 
 all:V: $FILES
 
