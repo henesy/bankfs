@@ -10,7 +10,7 @@
 void
 readndb(File *root, char* file)
 {
-	Ndbtuple *t;
+	Ndbtuple *t, *j;
 	Ndb *n;
 	int lastid = 0;
 	char *lastuser = nil;
@@ -24,22 +24,22 @@ readndb(File *root, char* file)
 	
 	Bank *b = nil;
 	while((t = ndbparse(n)) != nil){
-		if((t = ndbfindattr(t,t,"bankid")) != nil){
-			lastid = atoi(t->val);
-			lastuser = strcat("team", t->val);
+		if((j = ndbfindattr(t,t,"bankid")) != nil){
+			lastid = atoi(j->val);
+			lastuser = strcat("team", j->val);
 			if(b != nil)
 				initbankfs(root, lastid, lastuser, b);
 			b = initbank();
 			free(b->stats);
-			b->stats = readstats(t);
-		}else if((t = ndbfindattr(t,t,"acctid")) != nil){
+			b->stats = readstats(j);
+		}else if((j = ndbfindattr(t,t,"acctid")) != nil){
 			if(b == nil)
 				sysfatal("Orphaned account tuple with no bank");
-			b->accounts[atoi(t->val)] = readacct(t);
-		}else if((t = ndbfindattr(t,t,"transid")) != nil){
+			b->accounts[atoi(j->val)] = readacct(j);
+		}else if((j = ndbfindattr(t,t,"transid")) != nil){
 			if(b == nil)
 				sysfatal("Orphaned transaction tuple with no bank");
-			b->transactions[atoi(t->val)] = readtrans(t);
+			b->transactions[atoi(j->val)] = readtrans(j);
 		}
 	}
 	//We order banks first, so we still have one left to add at EOF
@@ -114,6 +114,11 @@ readtrans(Ndbtuple *t)
 	trans->n₀ = atoi(buf[0]);
 	trans->from = atoi(buf[1]);
 
+	t = ndbfindattr(t, t, "amount");
+	if(t == nil)
+		sysfatal("Could not find amount in transaction tuple");
+	trans->amt = atoi(t->val);
+
 	t = ndbfindattr(t, t, "to");
 	if(t == nil)
 		sysfatal("Could not find to in transaction tuple");
@@ -121,11 +126,6 @@ readtrans(Ndbtuple *t)
 		sysfatal("Bad format of to entry in transaction tuple");
 	trans->n₀ = atoi(buf[0]);
 	trans->to = atoi(buf[1]);
-
-	t = ndbfindattr(t, t, "amount");
-	if(t == nil)
-		sysfatal("Could not find amount in transaction tuple");
-	trans->amt = atoi(t->val);
 
 	t = ndbfindattr(t, t, "memo");
 	if(t == nil)
