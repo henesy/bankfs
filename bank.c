@@ -68,6 +68,8 @@ initacct(char *owner, uint bankid, int balance, uint pin)
 {
 	Account *acct = mallocz(sizeof(Account), 1);
 
+	stats->naccts++;
+
 	acct->name = mallocz(strlen(owner)+1 * sizeof(char), 1);
 	strcpy(acct->name, owner);
 	acct->balance = balance;
@@ -240,16 +242,12 @@ void
 mkacct(File *af, uint pin, char *owner)
 {
 	Account *a;
-	uint acctid;
 	uint bankid = atoi(af->name);
 	Bank *b = banks[bankid];
-
-	for(acctid = 0; acctid < MAXACCTS; acctid++)
-		if(b->accounts[acctid] == nil)
-			break;
-
+	
 	a = initacct(owner, bankid, 0, pin);
-	initacctfs(af, acctid, nil, a);
+	b->accounts[b->stats->naccts] = a;
+	initacctfs(af, b->stats->naccts++, nil, a);
 }
 
 // Delete an account by id -- removes both file tree and data structure

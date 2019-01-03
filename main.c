@@ -137,6 +137,7 @@ main(int argc, char *argv[])
 		Bank *b = initbank();
 		Account *reserve = initacct("reserve", 0, RESERVE, 1337);
 		b->accounts[0] = reserve;
+		b->stats->naccts++;
 		initbankfs(bankroot, 0, hostuser, b);
 	}
 
