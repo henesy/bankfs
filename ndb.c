@@ -13,7 +13,7 @@ readndb(File *root, char* file)
 	Ndbtuple *t;
 	Ndb *n;
 	int lastid = 0;
-	char *lastuser = malloc(255);
+	char *lastuser = nil;
 
 	n = ndbopen(file);
 	if(n == nil)
