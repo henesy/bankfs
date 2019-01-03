@@ -10,10 +10,10 @@
 void
 readndb(File *root, char* file)
 {
-	Ndbtuple *t, *j;
+	Ndbtuple *t;
 	Ndb *n;
 	int lastid = 0;
-	char *lastuser = nil;
+	char *lastuser = malloc(255);
 
 	n = ndbopen(file);
 	if(n == nil)
@@ -24,22 +24,22 @@ readndb(File *root, char* file)
 	
 	Bank *b = nil;
 	while((t = ndbparse(n)) != nil){
-		if((j = ndbfindattr(t,t,"bankid")) != nil){
-			lastid = atoi(j->val);
-			lastuser = strcat("team", j->val);
+		if(cmp(t->attr, "bankid")){
+			lastid = atoi(t->val);
+			lastuser = smprint("team%s", t->val);
 			if(b != nil)
 				initbankfs(root, lastid, lastuser, b);
 			b = initbank();
 			free(b->stats);
-			b->stats = readstats(j);
-		}else if((j = ndbfindattr(t,t,"acctid")) != nil){
+			b->stats = readstats(t);
+		}else if(cmp(t->attr, "acctid")){
 			if(b == nil)
 				sysfatal("Orphaned account tuple with no bank");
-			b->accounts[atoi(j->val)] = readacct(j);
-		}else if((j = ndbfindattr(t,t,"transid")) != nil){
+			b->accounts[atoi(t->val)] = readacct(t);
+		}else if(cmp(t->attr, "bankid")){
 			if(b == nil)
 				sysfatal("Orphaned transaction tuple with no bank");
-			b->transactions[atoi(j->val)] = readtrans(j);
+			b->transactions[atoi(t->val)] = readtrans(t);
 		}
 	}
 	//We order banks first, so we still have one left to add at EOF
@@ -94,7 +94,8 @@ readacct(Ndbtuple *t)
 	acct->balance = atoi(t->val);
 
 	t = ndbfindattr(t, t, "pin");
-		sysfatal("Coudl not find pin in account tuple");
+	if(t == nil)
+		sysfatal("Could not find pin in account tuple");
 	acct->pin = atoi(t->val);
 
 	return acct;
