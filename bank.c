@@ -33,7 +33,6 @@ initbankfs(File *root, int bankid, char *user, Bank *bank)
 {
 	int i;
 
-	stats->nbanks++;
 	banks[bankid] = bank;	
 	root->aux = bank;
 	
@@ -67,8 +66,6 @@ Account*
 initacct(char *owner, uint bankid, int balance, uint pin)
 {
 	Account *acct = mallocz(sizeof(Account), 1);
-
-	stats->naccts++;
 
 	acct->name = mallocz(strlen(owner)+1 * sizeof(char), 1);
 	strcpy(acct->name, owner);
@@ -132,6 +129,7 @@ mkbank(char *user)
 	f = createfile(banksf, itoa(bankid), user, DMDIR|ORDEXALL|OWRITE, nil);
 	b = initbank();
 	initbankfs(f, bankid, user, b);
+	stats->nbanks++;
 }
 
 // Transfer *amount* from n₀/from to n₁/to
@@ -244,10 +242,11 @@ mkacct(File *af, uint pin, char *owner)
 	Account *a;
 	uint bankid = atoi(af->name);
 	Bank *b = banks[bankid];
-	
+
 	a = initacct(owner, bankid, 0, pin);
 	b->accounts[b->stats->naccts] = a;
 	initacctfs(af, b->stats->naccts++, nil, a);
+	stats->naccts++;
 }
 
 // Delete an account by id -- removes both file tree and data structure

@@ -139,6 +139,7 @@ main(int argc, char *argv[])
 		b->accounts[0] = reserve;
 		b->stats->naccts++;
 		initbankfs(bankroot, 0, hostuser, b);
+		stats->nbanks++;
 	}
 
 	// Start listening
