@@ -52,7 +52,7 @@ readndb(File *root, char* file)
 Stats*
 readstats(Ndbtuple *t)
 {
-	Stats *stats = malloc(sizeof(Stats));
+	Stats *stats = emalloc(sizeof(Stats));
 	
 	t = ndbfindattr(t, t, "naccts");
 	if(t == nil)		
