@@ -39,7 +39,7 @@ initbankfs(File *root, int bankid, char *user, Bank *bank)
 	
 	createfile(root, "transactions", user, OREADALL, bank->transactions);
 	createfile(root, "stats", user, OREADALL, bank->stats);
-	createfile(root, "ctl", user, 0200, nil);
+	createfile(root, "ctl", user, 0220, nil);
 	// Makes accounts/ folder
 	File *acctf = createfile(root, "accounts", user, DMDIR|ORDEXALL, bank->accounts);
 

@@ -36,7 +36,7 @@ readndb(File *root, char* file)
 			if(b == nil)
 				sysfatal("Orphaned account tuple with no bank");
 			b->accounts[atoi(t->val)] = readacct(t);
-		}else if(cmp(t->attr, "bankid")){
+		}else if(cmp(t->attr, "transid")){
 			if(b == nil)
 				sysfatal("Orphaned transaction tuple with no bank");
 			b->transactions[atoi(t->val)] = readtrans(t);
