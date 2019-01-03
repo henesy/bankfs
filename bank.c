@@ -31,7 +31,7 @@
 void
 initbankfs(File *root, int bankid, char *user, Bank *bank)
 {
-	int i, j;
+	int i;
 
 	stats->nbanks++;
 	banks[bankid] = bank;	
@@ -43,9 +43,8 @@ initbankfs(File *root, int bankid, char *user, Bank *bank)
 	// Makes accounts/ folder
 	File *acctf = createfile(root, "accounts", user, DMDIR|ORDEXALL, bank->accounts);
 
-	for(i = j = 0; i < MAXACCTS; i++)
-		if(bank->accounts[i] != nil)
-			initacctfs(acctf, j++, user, bank->accounts[i]);
+	for(i = 0; i < bank->stats->naccts; i++)
+		initacctfs(acctf, i, user, bank->accounts[i]);
 }
 
 Bank*
