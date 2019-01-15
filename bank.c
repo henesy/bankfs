@@ -240,7 +240,7 @@ void
 mkacct(File *af, uint pin, char *owner)
 {
 	Account *a;
-	uint bankid = atoi(af->name);
+	uint bankid = atoi(af->parent->name);
 	Bank *b = banks[bankid];
 
 	a = initacct(owner, bankid, 0, pin);
