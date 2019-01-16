@@ -91,28 +91,37 @@ initacctfs(File *root, int acctid, char* user, Account *acct)
 /* Functions called by ctl files */
 
 // Deletes a bank from the registry, makes its pointer nil
-void
+char*
 delbank(Bank *b, uint bankid)
 {
+	if(b == nil)
+		return "err: bank is nil";
+
 	File *f;
 	// TODO -- search for directory that holds this bank -- or have banks track their ID(?)
 	char fpath[BUFSIZE];
 	snprint(fpath, BUFSIZE, "%ud", bankid);
 	f = walkfile(banksf, fpath);
+	
+	if(f == nil)
+		return "err: walking to f returned a nil";
+	
 	rmdir(f);
 	Bankdestroy(b);
 	banks[bankid] = nil;
 	stats->nbanks--;
+
+	return nil;
 }
 
-// Creates a bank under a given user name, this is for team usage -- TODO, all need error handling
-void
+// Creates a bank under a given user name, this is for team usage
+char*
 mkbank(char *user)
 {
 	// TODO
 	File	*f;
 	int		i, bankid;
-	Bank *b;
+	Bank	*b;
 	
 	bankid = -1;
 	for(i = 0; i < MAXBANKS; i++)
@@ -121,23 +130,35 @@ mkbank(char *user)
 			break;
 		}
 	
-	if(bankid == -1){
-		werrstr("err: out of bankid's; no bank made.");
-		return;
-	}
+	if(bankid < 0)
+		return "err: out of bankid's; no bank made.";
 	
 	f = createfile(banksf, itoa(bankid), user, DMDIR|ORDEXALL|OWRITE, nil);
 	b = initbank();
 	initbankfs(f, bankid, user, b);
 	stats->nbanks++;
+	
+	return nil;
 }
 
 // Transfer *amount* from n₀/from to n₁/to
-void
+char*
 trans(uint n₀, uint from, uint n₁, uint to, uint amount)
 {
+	if(banks[n₀] == nil)
+		return "err: n₀ is nil";
+
+	if(banks[n₁] == nil)
+		return "err: n₁ is nil";
+
 	Account *a₀ = banks[n₀]->accounts[from];
 	Account *a₁ = banks[n₁]->accounts[to];
+
+	if(a₀ == nil)
+		return "err: a₀ is nil";
+	
+	if(a₁ == nil)
+		return "err: a₁ is nil";
 	
 	a₀->balance -= amount;
 	a₁->balance += amount;
@@ -163,6 +184,8 @@ trans(uint n₀, uint from, uint n₁, uint to, uint amount)
 		banks[n₁]->transactions[banks[n₁]->stats->ntrans] = t;
 		banks[n₁]->stats->ntrans++;
 	}
+	
+	return nil;
 }
 
 // Dump everything to bankfs.ndb, backing up existing files to ./dumps/ if necessary
@@ -250,10 +273,16 @@ mkacct(File *af, uint pin, char *owner)
 }
 
 // Delete an account by id -- removes both file tree and data structure
-void
+char*
 delacct(File *af, Bank *b, uint acctid)
 {
 	char buf[BUFSIZE];
+	
+	if(b == nil)
+		return "err: bank is nil";
+	
+	if(b->accounts[acctid] == nil)
+		return "err: account is nil";
 
 	Acctdestroy(b->accounts[acctid]);
 	
@@ -265,28 +294,50 @@ delacct(File *af, Bank *b, uint acctid)
 	rmdir(f);
 	
 	b->stats->naccts--;
+	
+	return nil;
 }
 
 // Perform modifications on an account -- if non-nil, value is set
-void
+char*
 modacct(Bank *b, uint acctid, uint *pin, char *name)
 {
+	if(b == nil)
+		return "err: bank is nil";
+
 	Account *a = b->accounts[acctid];
+
+	if(a == nil)
+		return "err: account is nil";
 
 	if(pin)
 		a->pin = *pin;
 	if(name)
 		strcpy(a->name, name);
+	
+	return nil;
 }
 
 // Perform authorized transactions -- TODO -- error checking and returning?
-void
+char*
 atrans(uint n₀, uint from, uint n₁, uint to, uint amount, uint pin, char *memo)
 {
 	// n₀/from → n₁/to of amount with pin and memo…
+	
+	if(banks[n₀] == nil)
+		return "err n₀ is nil";
+	
+	if(banks[n₁] == nil)
+		return "err n₁ is nil";
+	
+	if(banks[n₀]->accounts[from] == nil)
+		return "err m₀ is nil";
+	
+	if(banks[n₁]->accounts[to] == nil)
+		return "err m₁ is nil";
 
 	if(!(pin == banks[n₀]->accounts[from]->pin))
-		return;
+		return "err: pin does not match";
 	
 	banks[n₀]->accounts[from]->balance	-= amount;
 	banks[n₁]->accounts[to]->balance	+= amount;
@@ -312,6 +363,8 @@ atrans(uint n₀, uint from, uint n₁, uint to, uint amount, uint pin, char *me
 		banks[n₁]->transactions[banks[n₁]->stats->ntrans] = t;
 		banks[n₁]->stats->ntrans++;
 	}
+	
+	return nil;
 }
 
 /* Cleanup functionality */

@@ -114,17 +114,16 @@ Account*		readacct(Ndbtuple*);
 Transaction*	readtrans(Ndbtuple*);
 
 // Master ctl logic
-void	delbank(Bank*, uint);
-void	mkbank(char*);
-void	trans(uint, uint, uint, uint, uint);
+char*	delbank(Bank*, uint);
+char*	mkbank(char*);
+char*	trans(uint, uint, uint, uint, uint);
 void	dump(void);
 
 // Individual bank ctl logic
 void	mkacct(File*, uint, char*);
-void	delacct(File*, Bank*, uint);
-void	modacct(Bank*, uint, uint*, char*);
-void	atrans(uint, uint, uint, uint, uint, uint, char*);
-// void	dep(Bank*, uint, uint, uint, char*);
+char*	delacct(File*, Bank*, uint);
+char*	modacct(Bank*, uint, uint*, char*);
+char*	atrans(uint, uint, uint, uint, uint, uint, char*);
 
 // Prototypes for cleanup functions
 void	Bankdestroy(Bank*);

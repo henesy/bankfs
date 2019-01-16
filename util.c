@@ -151,7 +151,7 @@ bankcmd(File *f, char *str)
 		File *af = walkfile(f, "accounts");
 		uint acctid = atoi(buf[1]);
 		
-		delacct(af, banks[bankid], acctid);
+		return delacct(af, banks[bankid], acctid);
 	
 	}else if(cmp(cmd, "modacct")){
 		// Modify an account
@@ -174,12 +174,14 @@ bankcmd(File *f, char *str)
 			strncpy(name, buf[3], BUFSIZE);
 		}
 		
-		modacct(banks[bankid], acctid, pin, name);
+		char *msg = modacct(banks[bankid], acctid, pin, name);
 		
 		if(pin)
 			free(pin);
 		if(name)
 			free(name);
+		
+		return msg;
 	
 	}else if(cmp(cmd, "atrans")){
 		// Perform an authorized transfer
@@ -198,7 +200,7 @@ bankcmd(File *f, char *str)
 		// TODO -- use all fields after and including 6 for memo
 		strncpy(memo, buf[6], BUFSIZE);
 		
-		atrans(bankid, from, n₁, to, amount, pin, memo);
+		return atrans(bankid, from, n₁, to, amount, pin, memo);
 	
 	}else
 		return "err: unknown cmd";
@@ -243,7 +245,7 @@ mastercmd(char *str)
 			return "err: no bank slots left";
 		
 		// Should pass bankid
-		mkbank(buf[1]);
+		return mkbank(buf[1]);
 
 	}else if(cmp(cmd, "delbank")){
 		// Delete a bank
@@ -258,7 +260,7 @@ mastercmd(char *str)
 		if(banks[bankid] == nil)
 			return "err: bank is nil";
 		
-		delbank(banks[bankid], bankid);
+		return delbank(banks[bankid], bankid);
 
 	}else if(cmp(cmd, "trans")){
 		// Transfer funds
@@ -272,7 +274,7 @@ mastercmd(char *str)
 		uint to		= atoi(buf[4]);
 		uint amt	= atoi(buf[5]);
 		
-		trans(n₀, from, n₁, to, amt);
+		return trans(n₀, from, n₁, to, amt);
 
 	}else if(cmp(cmd, "dump")){
 		/*	
