@@ -79,7 +79,7 @@ struct Bank {
 /* horrible, horrible global variables */
 
 extern	Tree	*banktree;	// Filesystem tree for bankfs
-extern	Stats	*stats;		// Global stats, some TODO here
+extern	Stats	*stats;		// Global stats
 extern	Bank	**banks;	// Table of all bank data structures in fs
 extern	File	*banksf;	// File pointer for banks root
 

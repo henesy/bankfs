@@ -98,7 +98,6 @@ delbank(Bank *b, uint bankid)
 		return "err: bank is nil";
 
 	File *f;
-	// TODO -- search for directory that holds this bank -- or have banks track their ID(?)
 	char fpath[BUFSIZE];
 	snprint(fpath, BUFSIZE, "%ud", bankid);
 	f = walkfile(banksf, fpath);
@@ -118,7 +117,6 @@ delbank(Bank *b, uint bankid)
 char*
 mkbank(char *user)
 {
-	// TODO
 	File	*f;
 	int		i, bankid;
 	Bank	*b;
@@ -165,23 +163,34 @@ trans(uint n₀, uint from, uint n₁, uint to, uint amount)
 	
 	// Create transaction log
 	
-	Transaction *t = emalloc(sizeof(Transaction));
+	Transaction *t₀ = emalloc(sizeof(Transaction));
 	
-	t->from		= from;
-	t->to		= to;
-	t->n₀		= n₀;
-	t->n₁		= n₁;
-	t->amt		= amount;
-	t->stamp	= time(0);
+	t₀->from	= from;
+	t₀->to		= to;
+	t₀->n₀		= n₀;
+	t₀->n₁		= n₁;
+	t₀->amt		= amount;
+	t₀->stamp	= time(0);
 
-	t->memo	= emalloc(BUFSIZE * sizeof(char));
-	strncpy(t->memo, "FORCED ☹", BUFSIZE);
+	t₀->memo	= emalloc(BUFSIZE * sizeof(char));
+	strncpy(t₀->memo, "FORCED ☹", BUFSIZE);
 	
-	banks[n₀]->transactions[banks[n₀]->stats->ntrans] = t;
+	banks[n₀]->transactions[banks[n₀]->stats->ntrans] = t₀;
 	banks[n₀]->stats->ntrans++;
 
 	if(n₀ != n₁){
-		banks[n₁]->transactions[banks[n₁]->stats->ntrans] = t;
+		Transaction *t₁ = emalloc(sizeof(Transaction));
+		t₁->from	= from;
+		t₁->to		= to;
+		t₁->n₁		= n₁;
+		t₁->n₁		= n₁;
+		t₁->amt		= amount;
+		t₁->stamp	= time(0);
+
+		t₁->memo	= emalloc(BUFSIZE * sizeof(char));
+		strncpy(t₁->memo, "FORCED ☹", BUFSIZE);
+	
+		banks[n₁]->transactions[banks[n₁]->stats->ntrans] = t₁;
 		banks[n₁]->stats->ntrans++;
 	}
 	
@@ -318,7 +327,7 @@ modacct(Bank *b, uint acctid, uint *pin, char *name)
 	return nil;
 }
 
-// Perform authorized transactions -- TODO -- error checking and returning?
+// Perform authorized transactions
 char*
 atrans(uint n₀, uint from, uint n₁, uint to, uint amount, uint pin, char *memo)
 {
@@ -344,23 +353,35 @@ atrans(uint n₀, uint from, uint n₁, uint to, uint amount, uint pin, char *me
 	
 	// Create transaction log
 	
-	Transaction *t = emalloc(sizeof(Transaction));
+	Transaction *t₀ = emalloc(sizeof(Transaction));
 	
-	t->from		= from;
-	t->to		= to;
-	t->n₀		= n₀;
-	t->n₁		= n₁;
-	t->amt		= amount;
-	t->stamp	= time(0);
+	t₀->from	= from;
+	t₀->to		= to;
+	t₀->n₀		= n₀;
+	t₀->n₁		= n₁;
+	t₀->amt		= amount;
+	t₀->stamp	= time(0);
 
-	t->memo	= emalloc(BUFSIZE * sizeof(char));
-	strncpy(t->memo, memo, BUFSIZE);
+	t₀->memo	= emalloc(BUFSIZE * sizeof(char));
+	strncpy(t₀->memo, memo, BUFSIZE);
 	
-	banks[n₀]->transactions[banks[n₀]->stats->ntrans] = t;
+	banks[n₀]->transactions[banks[n₀]->stats->ntrans] = t₀;
 	banks[n₀]->stats->ntrans++;
 
 	if(n₀ != n₁){
-		banks[n₁]->transactions[banks[n₁]->stats->ntrans] = t;
+		Transaction *t₁ = emalloc(sizeof(Transaction));
+	
+		t₁->from	= from;
+		t₁->to		= to;
+		t₁->n₁		= n₁;
+		t₁->n₁		= n₁;
+		t₁->amt		= amount;
+		t₁->stamp	= time(0);
+	
+		t₁->memo	= emalloc(BUFSIZE * sizeof(char));
+		strncpy(t₁->memo, memo, BUFSIZE);
+
+		banks[n₁]->transactions[banks[n₁]->stats->ntrans] = t₁;
 		banks[n₁]->stats->ntrans++;
 	}
 	
@@ -390,7 +411,7 @@ Statsdestroy(Stats* s)
 void
 Transdestroy(Transaction* t)
 {
-	free(t->memo);	// TODO ­ might be bad?
+	free(t->memo);
 	free(t);
 }
 
@@ -407,8 +428,11 @@ void
 Transendestroy(Transaction** transen, uint ntrans)
 {
 	int i;
-	for(i = 0; i < ntrans; i++)
+	for(i = 0; i < ntrans; i++){
+		// TODO -- might be wrong?
+		// stats->ntrans--;
 		Transdestroy(transen[i]);
+	}
 }
 
 // Destroy a set of accounts

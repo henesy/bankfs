@@ -3,11 +3,6 @@
 
 rfork n;
 
-# Clean up environment
-rm -r dumps bankfs.ndb
-mk nuke
-mk
-
 # Start server as us
 6.out -u $user -g $user
 

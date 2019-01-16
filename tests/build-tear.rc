@@ -1,0 +1,40 @@
+#!/bin/rc
+# Demonstrates a basic use of bankfs
+
+rfork n;
+
+# Start server as us
+6.out -u $user -g $user
+
+# Create a backup file
+echo dump nil >> /mnt/bankfs/ctl
+
+# Create account under 'seh' with pin '1234'
+echo mkacct 1234 seh >> /mnt/bankfs/banks/0/ctl
+
+# Forcibly transfer $100 from the reserve 0/0 account to seh's account
+echo trans 0 0 0 1 100 >> /mnt/bankfs/ctl
+
+# Use seh's PIN to transfer $25 from seh's account to the reserve 0/0 account
+echo atrans 1 0 0 25 1234 ducks >> /mnt/bankfs/banks/0/ctl
+
+# Create another backup file, forcing the old one into the ./dumps/ folder
+echo dump nil >> /mnt/bankfs/ctl
+
+echo mkbank seh > /mnt/bankfs/ctl
+
+echo mkacct 0 hes > /mnt/bankfs/banks/1/ctl
+
+echo trans 0 0 1 0 10 > /mnt/bankfs/ctl
+
+echo atrans 1 1 0 2 1234 quack > /mnt/bankfs/banks/0/ctl
+
+echo atrans 0 0 1 3 0 cluck > /mnt/bankfs/banks/1/ctl
+
+echo delacct 0 > /mnt/bankfs/banks/1/ctl
+
+echo delbank 1 > /mnt/bankfs/ctl
+
+echo delacct 1 > /mnt/bankfs/banks/0/ctl
+
+echo dump nil > /mnt/bankfs/ctl

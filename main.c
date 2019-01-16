@@ -279,8 +279,3 @@ freefid(Fid *fid)
 		closefile(f);
 	}
 }
-
-/* auth functions */
-
-// TODO
-

@@ -74,6 +74,13 @@ If you want to read and write from Linux and can't from the mount, do:
 To mount from Plan 9:
 
 	import -z tcp!plan9.postnix.us!3656 banken /n/banks
+## Testing
+
+Rudimentary tests are contained in the `tests/` directory. 
+
+They are intended to be run as per `tests/demo.rc`.
+
+Note: at this time, tests do not actually test and are more to make sure nothing induces a segfault.
 
 ## References
 

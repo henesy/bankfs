@@ -54,8 +54,8 @@ Transfmtr(Fmt *f)
 	b = va_arg(f->args, Bank*);
 	r = fmtprint(f, "");
 	for(i=0; i < b->stats->ntrans; i++){
-		//TODO: Make safer
 		Transaction *t = b->transactions[i];
+		
 		r += fmtprint(f, "from=%ud/%ud\n\tamount=%ud\n\tto=%ud/%ud\n\tmemo=%s\n\tstamp=%ld\n", t->n₀, t->from, t->amt, t->n₁, t->to, t->memo, t->stamp);
 	}
 
