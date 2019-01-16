@@ -301,6 +301,8 @@ rmdir(File *froot)
 {
 	int err;
 	int nchildren = froot->nchild;
+	
+	fprint(2, "attempting to delete: %s\n", froot->name);
 
 	err = removefile(froot);
 	if(err >= 0){

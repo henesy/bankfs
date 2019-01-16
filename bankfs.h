@@ -130,8 +130,8 @@ void	Bankdestroy(Bank*);
 void	Statsdestroy(Stats*);
 void	Transdestroy(Transaction*);
 void	Acctdestroy(Account*);
-void	Transendestroy(Transaction**);
-void	Acctsdestroy(Account**);
+void	Transendestroy(Transaction**, uint);
+void	Acctsdestroy(Account**, uint);
 
 // Prototypes for fmtinstall routines
 void	bankfsfmtinstall(void);

@@ -373,42 +373,49 @@ atrans(uint n₀, uint from, uint n₁, uint to, uint amount, uint pin, char *me
 void
 Bankdestroy(Bank *b)
 {
+	Transendestroy(b->transactions, b->stats->ntrans);
+	Acctsdestroy(b->accounts, b->stats->naccts);
 	Statsdestroy(b->stats);
-	Transendestroy(b->transactions);
-	Acctsdestroy(b->accounts);
+	free(b);
 }
 
 // Destroy a Stats
-void	Statsdestroy(Stats*)
+void
+Statsdestroy(Stats* s)
 {
-	// TODO
-
+	free(s);
 }
 
 // Destroy a Transaction
-void	Transdestroy(Transaction*)
+void
+Transdestroy(Transaction* t)
 {
-	// TODO
-
+	free(t->memo);	// TODO ­ might be bad?
+	free(t);
 }
 
 // Destroy an Account
-void	Acctdestroy(Account*)
+void
+Acctdestroy(Account* a)
 {
-	// TODO
-
+	free(a->name);
+	free(a);
 }
 
 // Destroy a set of transactions
-void	Transendestroy(Transaction**)
+void
+Transendestroy(Transaction** transen, uint ntrans)
 {
-	// TODO
-
+	int i;
+	for(i = 0; i < ntrans; i++)
+		Transdestroy(transen[i]);
 }
 
 // Destroy a set of accounts
-void	Acctsdestroy(Account**)
+void
+Acctsdestroy(Account** accts, uint naccts)
 {
-	// TODO
-
+	int i;
+	for(i = 0; i < naccts; i++)
+		Acctdestroy(accts[i]);
 }
