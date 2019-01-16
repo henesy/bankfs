@@ -304,6 +304,7 @@ rmdir(File *froot)
 	
 	fprint(2, "attempting to delete: %s\n", froot->name);
 
+	incref(froot);
 	err = removefile(froot);
 	if(err >= 0){
 		fprint(2, "deleted %s\n", froot->name);
