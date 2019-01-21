@@ -134,9 +134,12 @@ bankcmd(File *f, char *str)
 		// mkacct pin name…
 		if(nfields < 3)
 			return "err: incorrect arg count to mkacct";
-		
+
+		incref(f);
 		File *af = walkfile(f, "accounts");
-		// fprint(2, "parent: %s us: %s\n", f->parent->name, f->name);
+		
+		//fprint(2, "DEBUG: parent: %s us: %s\n", f->parent->name, f->name);
+
 		uint pin = atoi(buf[1]);
 		
 		// TODO -- use all fields past and including 2 as name...

@@ -1,0 +1,11 @@
+#!/bin/rc
+
+rm /srv/bankfs
+slay bankfs | rc
+mk clean
+mk install
+echo Starting…
+bankfs -s bankfs -u glenda -g sys > /sys/log/bankfs >[2=1]
+sleep 1
+chmod a+rw /srv/bankfs
+tail -f /sys/log/bankfs
