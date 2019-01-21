@@ -42,8 +42,12 @@ initbankfs(File *root, int bankid, char *user, Bank *bank)
 	// Makes accounts/ folder
 	File *acctf = createfile(root, "accounts", user, DMDIR|ORDEXALL, bank->accounts);
 
-	for(i = 0; i < bank->stats->naccts; i++)
-		initacctfs(acctf, i, user, bank->accounts[i]);
+	int n = 0;
+	for(i = 0; i < MAXACCTS && n < bank->stats->naccts; i++)
+		if(bank->accounts[i] != nil){
+			initacctfs(acctf, i, user, bank->accounts[i]);
+			n++;
+		}
 }
 
 Bank*
@@ -80,12 +84,34 @@ initacct(char *owner, uint bankid, int balance, uint pin)
 void
 initacctfs(File *root, int acctid, char* user, Account *acct)
 {
-	char *id;
-	id = smprint("%d", acctid);
+	char id[BUFSIZE];
+	snprint(id, BUFSIZE, "%d", acctid);
+	
+	if(root == nil){
+		fprint(2, "%r\n");
+		fprint(2, "Error: You gave me a bad root for %s's %s.", user, id);
+	}
+
 	File *acctdir = createfile(root, id, user, DMDIR|ORDEXALL, acct);
-	createfile(acctdir, "name", user, OREADALL, nil);
-	createfile(acctdir, "balance", user, OREADALL, nil);
-	free(id);
+	
+	if(acctdir == nil){
+		fprint(2, "%r\n");
+		fprint(2, "Error: Creating acct dir failed for %s's %s.", user, id);
+	}
+
+	File *err = createfile(acctdir, "name", user, OREADALL, nil);
+	
+	if(err == nil){
+		fprint(2, "%r\n");
+		fprint(2, "Error: Creating name failed for %s's %s.", user, id);
+	}
+
+	err = createfile(acctdir, "balance", user, OREADALL, nil);
+	
+	if(err == nil){
+		fprint(2, "%r\n");
+		fprint(2, "Error: Creating balance failed for %s's %s.", user, id);
+	}
 }
 
 /* Functions called by ctl files */
@@ -276,9 +302,21 @@ mkacct(File *af, uint pin, char *owner)
 	Bank *b = banks[bankid];
 
 	a = initacct(owner, bankid, 0, pin);
-	b->accounts[b->stats->naccts] = a;
-	initacctfs(af, b->stats->naccts++, nil, a);
-	stats->naccts++;
+
+	int i, acctid = -1;
+	for(i = 0; i < MAXACCTS; i++)
+		if(b->accounts[i] == nil){
+			acctid = i;
+			break;
+		}
+	
+	if(acctid >= MAXACCTS || acctid < 0)
+		sysfatal("Error: out of accounts.");
+
+	b->accounts[acctid] = a;
+
+	initacctfs(af, acctid, owner, a);
+	b->stats->naccts++;
 }
 
 // Delete an account by id -- removes both file tree and data structure

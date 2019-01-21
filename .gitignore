@@ -4,4 +4,11 @@
 *.ndb
 *.ps
 dumps/*
+*.aux
+*.dvi
+*.log
+*.pdf
+*.synctex.gz
+*.tex
+*.sty
 

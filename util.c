@@ -29,22 +29,38 @@ readfile(Fid* fid)
 	}else if(cmp(name, "stats")){
 		// Individual bank statistics
 		Bank* b = f->parent->aux;
-		snprint(buf, BUFSIZE*BUFSIZE, "bank=%s\n\t%Β", f->parent->name, b);
+
+		if(b == nil)
+			snprint(buf, BUFSIZE*BUFSIZE, "Error: bank is nil.\n");
+		else	
+			snprint(buf, BUFSIZE*BUFSIZE, "bank=%s\n\t%Β", f->parent->name, b);
 
 	}else if(cmp(name, "name")){
 		// Account owner name
 		Account *a = f->parent->aux;
-		snprint(buf, BUFSIZE*BUFSIZE, "%s\n", a->name);
+
+		if(a == nil)
+			snprint(buf, BUFSIZE*BUFSIZE, "Error: account is nil.\n");
+		else
+			snprint(buf, BUFSIZE*BUFSIZE, "%s\n", a->name);
 
 	}else if(cmp(name, "balance")){
 		// Account balance
 		Account *a = f->parent->aux;
-		snprint(buf, BUFSIZE*BUFSIZE, "%d\n", a->balance);
+
+		if(a == nil)
+			snprint(buf, BUFSIZE*BUFSIZE, "Error: account is nil.\n");
+		else
+			snprint(buf, BUFSIZE*BUFSIZE, "%d\n", a->balance);
 
 	}else if(cmp(name, "transactions")){
 		// Transaction history for a bank
 		Bank* b = f->parent->aux;
-		snprint(buf, BUFSIZE*BUFSIZE, "%Τ", b);
+
+		if(b == nil)
+			snprint(buf, BUFSIZE*BUFSIZE, "Error: bank is nil.\n");
+		else
+			snprint(buf, BUFSIZE*BUFSIZE, "%Τ", b);
 
 	}else{
 		// Return catch-all
