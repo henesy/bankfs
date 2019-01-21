@@ -32,15 +32,28 @@ void
 initbankfs(File *root, int bankid, char *user, Bank *bank)
 {
 	int i;
+	char buf[BUFSIZE];
 
 	banks[bankid] = bank;	
 	root->aux = bank;
 	
-	createfile(root, "transactions", user, OREADALL, bank->transactions);
-	createfile(root, "stats", user, OREADALL, bank->stats);
-	createfile(root, "ctl", user, 0220, nil);
+	snprint(buf, BUFSIZE, "%d", bankid);
+
+	File *bankroot = createfile(root, buf, user, DMDIR|ORDEXALL, bank);
+	
+	if(bankroot == nil){
+		fprint(2, "%r\n");
+		fprint(2, "Error: bankroot is nil for %d.\n", bankid);
+	}
+	
+	createfile(bankroot, "transactions", user, OREADALL, bank->transactions);
+
+	createfile(bankroot, "stats", user, OREADALL, bank->stats);
+	
+	createfile(bankroot, "ctl", user, 0220, nil);
+	
 	// Makes accounts/ folder
-	File *acctf = createfile(root, "accounts", user, DMDIR|ORDEXALL, bank->accounts);
+	File *acctf = createfile(bankroot, "accounts", user, DMDIR|ORDEXALL, bank->accounts);
 
 	int n = 0;
 	for(i = 0; i < MAXACCTS && n < bank->stats->naccts; i++)
@@ -89,28 +102,29 @@ initacctfs(File *root, int acctid, char* user, Account *acct)
 	
 	if(root == nil){
 		fprint(2, "%r\n");
-		fprint(2, "Error: You gave me a bad root for %s's %s.", user, id);
+		fprint(2, "Error: You gave me a bad root for %s's %s.\n", user, id);
+		// Segfault after
 	}
 
 	File *acctdir = createfile(root, id, user, DMDIR|ORDEXALL, acct);
 	
 	if(acctdir == nil){
 		fprint(2, "%r\n");
-		fprint(2, "Error: Creating acct dir failed for %s's %s.", user, id);
+		fprint(2, "Error: Creating acct dir failed for %s's %s.\n", user, id);
 	}
 
 	File *err = createfile(acctdir, "name", user, OREADALL, nil);
 	
 	if(err == nil){
 		fprint(2, "%r\n");
-		fprint(2, "Error: Creating name failed for %s's %s.", user, id);
+		fprint(2, "Error: Creating name failed for %s's %s.\n", user, id);
 	}
 
 	err = createfile(acctdir, "balance", user, OREADALL, nil);
 	
 	if(err == nil){
 		fprint(2, "%r\n");
-		fprint(2, "Error: Creating balance failed for %s's %s.", user, id);
+		fprint(2, "Error: Creating balance failed for %s's %s.\n", user, id);
 	}
 }
 

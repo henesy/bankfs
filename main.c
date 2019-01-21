@@ -127,13 +127,13 @@ main(int argc, char *argv[])
 
 	banksf = createfile(fs.tree->root, "banks", nil, DMDIR|ORDEXALL, nil);
 
-	// Load from database here
-	File *bankroot = createfile(banksf, "0", hostuser, DMDIR|ORDEXALL, nil);
 	if(ndb){
-		readndb(bankroot, ndb);
+		// Load from ndb database 
+		readndb(banksf, ndb);
 	}else{
 		// We are not loading from database -- initialize
 		// Add root as /banks/0
+		File *bankroot = createfile(banksf, "0", hostuser, DMDIR|ORDEXALL, nil);
 		Bank *b = initbank();
 		Account *reserve = initacct("reserve", 0, RESERVE, 1337);
 		b->accounts[0] = reserve;
