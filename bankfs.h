@@ -60,6 +60,7 @@ struct Bank {
 	Stats			*stats;			// General bank statistics
 	Transaction		**transactions;	// Transaction history for bank
 	Account			**accounts;		// Account table for bank
+	char			*user;			//Owner of bank
 };
 
 /* let the compiler properly check our new fmt's */
@@ -102,9 +103,9 @@ Stats	masterstats(void);
 void	rmdir(File*);
 
 // Prototypes for bank calls
-Bank*		initbank(void);
+Bank*		initbank(char *);
 Account* 	initacct(char*, uint, int, uint);
-void		initbankfs(File*, int, char*, Bank*);
+void		initbankfs(File*, int, Bank*);
 void		initacctfs(File*, int, char*, Account*);
 
 // Prototypes for NDB functions
@@ -112,6 +113,7 @@ Stats* 			readstats(Ndbtuple*);
 void 			readndb(File*, char*);
 Account*		readacct(Ndbtuple*);
 Transaction*	readtrans(Ndbtuple*);
+Bank*			readbank(Ndbtuple*);
 
 // Master ctl logic
 char*	delbank(Bank*, uint);

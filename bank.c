@@ -29,7 +29,7 @@
 */
 
 void
-initbankfs(File *root, int bankid, char *user, Bank *bank)
+initbankfs(File *root, int bankid, Bank *bank)
 {
 	int i;
 	char buf[BUFSIZE];
@@ -39,32 +39,32 @@ initbankfs(File *root, int bankid, char *user, Bank *bank)
 	
 	snprint(buf, BUFSIZE, "%d", bankid);
 
-	File *bankroot = createfile(root, buf, user, DMDIR|ORDEXALL, bank);
+	File *bankroot = createfile(root, buf, bank->user, DMDIR|ORDEXALL, bank);
 	
 	if(bankroot == nil){
 		fprint(2, "%r\n");
 		fprint(2, "Error: bankroot is nil for %d.\n", bankid);
 	}
 	
-	createfile(bankroot, "transactions", user, OREADALL, bank->transactions);
+	createfile(bankroot, "transactions", bank->user, OREADALL, bank->transactions);
 
-	createfile(bankroot, "stats", user, OREADALL, bank->stats);
+	createfile(bankroot, "stats", bank->user, OREADALL, bank->stats);
 	
-	createfile(bankroot, "ctl", user, 0220, nil);
+	createfile(bankroot, "ctl", bank->user, 0220, nil);
 	
 	// Makes accounts/ folder
-	File *acctf = createfile(bankroot, "accounts", user, DMDIR|ORDEXALL, bank->accounts);
+	File *acctf = createfile(bankroot, "accounts", bank->user, DMDIR|ORDEXALL, bank->accounts);
 
 	int n = 0;
 	for(i = 0; i < MAXACCTS && n < bank->stats->naccts; i++)
 		if(bank->accounts[i] != nil){
-			initacctfs(acctf, i, user, bank->accounts[i]);
+			initacctfs(acctf, i, bank->user, bank->accounts[i]);
 			n++;
 		}
 }
 
 Bank*
-initbank(void)
+initbank(char *user)
 {
 	// Allocate bank
 	Bank		*bank 	= mallocz(sizeof(Bank), 1);
@@ -74,6 +74,7 @@ initbank(void)
 	bank->transactions	= trans;
 	bank->stats			= s;
 	bank->accounts		= accts;
+	bank->user			= user;
 
 	return bank;
 }
@@ -172,8 +173,8 @@ mkbank(char *user)
 		return "err: out of bankid's; no bank made.";
 	
 	f = createfile(banksf, itoa(bankid), user, DMDIR|ORDEXALL|OWRITE, nil);
-	b = initbank();
-	initbankfs(f, bankid, user, b);
+	b = initbank(user);
+	initbankfs(f, bankid, b);
 	stats->nbanks++;
 	
 	return nil;

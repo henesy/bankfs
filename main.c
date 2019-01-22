@@ -134,12 +134,11 @@ main(int argc, char *argv[])
 		// We are not loading from database -- initialize
 		// Add root as /banks/0
 		File *bankroot = createfile(banksf, "0", hostuser, DMDIR|ORDEXALL, nil);
-		Bank *b = initbank();
+		Bank *b = initbank("glenda");
 		Account *reserve = initacct("reserve", 0, RESERVE, 1337);
 		b->accounts[0] = reserve;
 		b->stats->naccts++;
-		initbankfs(bankroot, 0, hostuser, b);
-		stats->nbanks++;
+		initbankfs(bankroot, 0, b);
 	}
 
 	// Start listening

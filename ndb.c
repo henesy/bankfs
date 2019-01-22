@@ -12,8 +12,7 @@ readndb(File *root, char* file)
 {
 	Ndbtuple *t;
 	Ndb *n;
-	int lastid = 0;
-	char *lastuser = "glenda";
+	int id = 0;
 
 	n = ndbopen(file);
 	if(n == nil)
@@ -22,22 +21,14 @@ readndb(File *root, char* file)
 	//Read in master stats
 	t = ndbparse(n);
 	stats = readstats(t);
-	
-	//Read in bank 0
-	Bank *b = initbank();
-	free(b->stats);
-	t = ndbparse(n);
-	b->stats = readstats(t);
 
+	Bank *b = nil;
 	while((t = ndbparse(n)) != nil){
 		if(cmp(t->attr, "bankid")){
 			if(b != nil)
-				initbankfs(root, lastid, lastuser, b);
-			lastid = atoi(t->val);
-			lastuser = smprint("team%s", t->val);
-			b = initbank();
-			free(b->stats);
-			b->stats = readstats(t);
+				initbankfs(root, id, b);
+			id = atoi(t->val);
+			b = readbank(t);
 		}else if(cmp(t->attr, "acctid")){
 			if(b == nil)
 				sysfatal("Orphaned account tuple with no bank");
@@ -48,11 +39,23 @@ readndb(File *root, char* file)
 			b->transactions[atoi(t->val)] = readtrans(t);
 		}	
 	}
-		
 
 	//We order banks first, so we still have one left to add at EOF
 	if(b != nil)
-		initbankfs(root, lastid, lastuser, b);
+		initbankfs(root, id, b);
+}
+
+Bank*
+readbank(Ndbtuple *t)
+{
+	Bank *b;
+	t = ndbfindattr(t, t, "user");
+	if(t == nil)
+		sysfatal("Could not find user entry in tuple");
+	b = initbank(smprint("%s", t->val));
+	free(b->stats);
+	b->stats = readstats(t);
+	return b;
 }
 
 //Returns Stats object for master from bankfs.ndb

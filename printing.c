@@ -139,7 +139,7 @@ Bankfmtw(Fmt *f)
 	Bank *b;
 	
 	b = va_arg(f->args, Bank*);
-	r = fmtprint(f, "");
+	r = fmtprint(f, "\tuser=%s\n", b->user);
 	
 	// Print statistics
 	r += fmtprint(f, "%σ\n", b->stats);
