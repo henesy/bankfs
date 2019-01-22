@@ -19,23 +19,22 @@ readndb(File *root, char* file)
 	if(n == nil)
 		sysfatal("Could not open %s", file);
 
+	//Read in master stats
 	t = ndbparse(n);
 	stats = readstats(t);
 	
-	// Create Bank 0
+	//Read in bank 0
 	Bank *b = initbank();
 	free(b->stats);
-	b->stats = readstats(t);
 	t = ndbparse(n);
-	
-	do{
+	b->stats = readstats(t);
+
+	while((t = ndbparse(n)) != nil){
 		if(cmp(t->attr, "bankid")){
-			if(lastid != 0){
-				lastid = atoi(t->val);
-				lastuser = smprint("team%s", t->val);
-			}		
 			if(b != nil)
 				initbankfs(root, lastid, lastuser, b);
+			lastid = atoi(t->val);
+			lastuser = smprint("team%s", t->val);
 			b = initbank();
 			free(b->stats);
 			b->stats = readstats(t);
@@ -48,7 +47,7 @@ readndb(File *root, char* file)
 				sysfatal("Orphaned transaction tuple with no bank");
 			b->transactions[atoi(t->val)] = readtrans(t);
 		}	
-	}while((t = ndbparse(n)) != nil);
+	}
 		
 
 	//We order banks first, so we still have one left to add at EOF
