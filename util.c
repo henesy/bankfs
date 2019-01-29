@@ -10,6 +10,24 @@
 
 /* utility functions */
 
+// Convert a signed integer to a string
+char*
+itoa(int n)
+{
+	char buf[BUFSIZE];
+	snprint(buf, BUFSIZE, "%d", n);
+	return buf;
+}
+
+// Convert an unsigned integer to a string
+char*
+uitoa(uint n)
+{
+	char buf[BUFSIZE];
+	snprint(buf, BUFSIZE, "%ud", n);
+	return buf;
+}
+
 // Read from a file, if able
 char*
 readfile(Fid* fid)
@@ -90,10 +108,10 @@ writefile(Fid* fid, char* str)
 
 	}else if(cmp(name, "ctl")){
 		// Bank ctl file
-		uint bankid = atoi(f->parent->name);
-		// Bank *b = f->parent->aux;
+		// uint bankid = atoi(f->parent->name);
+		Bank *b = f->parent->aux;
 		
-		fprint(2, "user sent to bank %d: %s", bankid, str);
+		fprint(2, "user sent to bank %d: %s", b->id, str);
 
 		return bankcmd(f->parent, str);
 
@@ -102,24 +120,6 @@ writefile(Fid* fid, char* str)
 		snprint(buf, BUFSIZE, "err: nothing to write here\n");
 	}
 
-	return buf;
-}
-
-// Convert a signed integer to a string
-char*
-itoa(int n)
-{
-	char buf[BUFSIZE];
-	snprint(buf, BUFSIZE, "%d", n);
-	return buf;
-}
-
-// Convert an unsigned integer to a string
-char*
-uitoa(uint n)
-{
-	char buf[BUFSIZE];
-	snprint(buf, BUFSIZE, "%ud", n);
 	return buf;
 }
 
@@ -133,18 +133,12 @@ bankcmd(File *f, char *str)
 	char		*cmd;
 
 	nfields = getfields(str, buf, MAXARGS, 1, " 	\n");
-	
-	// Debug output
-	/*
-	fprint(2, "%d fields to bank %d cmd:\n", nfields, bankid);
-	for(i = 0; i < nfields; i++)
-		fprint(2, "%s\n", buf[i]);
-	*/
-	
+
 	if(nfields < 2)
 		return "err: each command requires at least 1 arg";
 
 	cmd = buf[0];
+
 	if(cmp(cmd, "mkacct")){
 		// Create an account
 		// mkacct pin name…
@@ -159,7 +153,7 @@ bankcmd(File *f, char *str)
 		uint pin = atoi(buf[1]);
 		
 		// TODO -- use all fields past and including 2 as name...
-		mkacct(af, pin, buf[2]);
+		return mkacct(af, banks[bankid], pin, buf[2]);
 	
 	}else if(cmp(cmd, "delacct")){
 		// Delete an account
@@ -223,8 +217,8 @@ bankcmd(File *f, char *str)
 	
 	}else
 		return "err: unknown cmd";
-
-	return nil;
+	
+	// Should never happen ☺
 }
 
 // Process master input command language ;; returns nil on success

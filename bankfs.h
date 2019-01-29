@@ -61,6 +61,7 @@ struct Bank {
 	Transaction		**transactions;	// Transaction history for bank
 	Account			**accounts;		// Account table for bank
 	char			*user;			//Owner of bank
+	uint			id;			// index ID of bank
 };
 
 /* let the compiler properly check our new fmt's */
@@ -122,7 +123,7 @@ char*	trans(uint, uint, uint, uint, uint);
 void	dump(void);
 
 // Individual bank ctl logic
-void	mkacct(File*, uint, char*);
+char*	mkacct(File*, Bank*, uint, char*);
 char*	delacct(File*, Bank*, uint);
 char*	modacct(Bank*, uint, uint*, char*);
 char*	atrans(uint, uint, uint, uint, uint, uint, char*);

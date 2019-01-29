@@ -33,7 +33,9 @@ initbankfs(File *root, int bankid, Bank *bank)
 {
 	int i;
 	char buf[BUFSIZE];
+	File *err;
 
+	bank->id = bankid;
 	banks[bankid] = bank;	
 	root->aux = bank;
 	
@@ -46,14 +48,34 @@ initbankfs(File *root, int bankid, Bank *bank)
 		fprint(2, "Error: bankroot is nil for %d.\n", bankid);
 	}
 	
-	createfile(bankroot, "transactions", bank->user, OREADALL, bank->transactions);
+	err = createfile(bankroot, "transactions", bank->user, OREADALL, bank->transactions);
 
-	createfile(bankroot, "stats", bank->user, OREADALL, bank->stats);
+	if(err == nil){
+		fprint(2, "%r\n");
+		sysfatal("Error: Failed to create transactions for %ud\n", bankid);
+	}
+
+	err = createfile(bankroot, "stats", bank->user, OREADALL, bank->stats);
+
+	if(err == nil){
+		fprint(2, "%r\n");
+		sysfatal("Error: Failed to create stats for %ud\n", bankid);
+	}
 	
-	createfile(bankroot, "ctl", bank->user, 0220, nil);
+	err = createfile(bankroot, "ctl", bank->user, 0220, nil);
+
+	if(err == nil){
+		fprint(2, "%r\n");
+		sysfatal("Error: Failed to create ctl for %ud\n", bankid);
+	}
 	
 	// Makes accounts/ folder
 	File *acctf = createfile(bankroot, "accounts", bank->user, DMDIR|ORDEXALL, bank->accounts);
+	
+	if(acctf == nil){
+		fprint(2, "%r\n");
+		sysfatal("Error: Failed to create accounts/ for %ud\n", bankid);
+	}
 
 	int n = 0;
 	for(i = 0; i < MAXACCTS && n < bank->stats->naccts; i++)
@@ -150,6 +172,8 @@ delbank(Bank *b, uint bankid)
 	Bankdestroy(b);
 	banks[bankid] = nil;
 	stats->nbanks--;
+	
+	print("Deleted bank %ud.\n", bankid);
 
 	return nil;
 }
@@ -158,7 +182,7 @@ delbank(Bank *b, uint bankid)
 char*
 mkbank(char *user)
 {
-	File	*f;
+	// File	*f;
 	int		i, bankid;
 	Bank	*b;
 	
@@ -172,10 +196,17 @@ mkbank(char *user)
 	if(bankid < 0)
 		return "err: out of bankid's; no bank made.";
 	
-	f = createfile(banksf, itoa(bankid), user, DMDIR|ORDEXALL|OWRITE, nil);
+	// f = createfile(banksf, itoa(bankid), user, DMDIR|ORDEXALL|OWRITE, nil);
+
 	b = initbank(user);
-	initbankfs(f, bankid, b);
+
+	initbankfs(banksf, bankid, b);
+	
+	b->id = bankid;
+
 	stats->nbanks++;
+	
+	print("Created bank %ud for %s.\n", bankid, user);
 	
 	return nil;
 }
@@ -309,29 +340,35 @@ dump()
 // Individual bank ctl logic
 
 // Create an account for a bank using a given pin and owner name, initial balance is 0
-void
-mkacct(File *af, uint pin, char *owner)
+char*
+mkacct(File *af, Bank *b, uint pin, char *owner)
 {
 	Account *a;
-	uint bankid = atoi(af->parent->name);
-	Bank *b = banks[bankid];
-
-	a = initacct(owner, bankid, 0, pin);
-
+	uint bankid = b->id;
 	int i, acctid = -1;
+
 	for(i = 0; i < MAXACCTS; i++)
 		if(b->accounts[i] == nil){
 			acctid = i;
 			break;
 		}
 	
-	if(acctid >= MAXACCTS || acctid < 0)
-		sysfatal("Error: out of accounts.");
+	if(acctid >= MAXACCTS || acctid < 0){
+		fprint(2, "Error: out of accounts for bank %ud.", bankid);
+		return "err: out of accounts";
+	}
+	
+	a = initacct(owner, bankid, 0, pin);
 
 	b->accounts[acctid] = a;
 
 	initacctfs(af, acctid, owner, a);
+
 	b->stats->naccts++;
+	
+	print("Made account %d for bank %ud.\n", acctid, bankid);
+	
+	return nil;
 }
 
 // Delete an account by id -- removes both file tree and data structure
@@ -339,6 +376,7 @@ char*
 delacct(File *af, Bank *b, uint acctid)
 {
 	char buf[BUFSIZE];
+	uint bankid = b->id;
 	
 	if(b == nil)
 		return "err: bank is nil";
@@ -356,6 +394,8 @@ delacct(File *af, Bank *b, uint acctid)
 	rmdir(f);
 	
 	b->stats->naccts--;
+	
+	print("Removed account %ud for bank %ud.\n", acctid, bankid);
 	
 	return nil;
 }
@@ -376,6 +416,8 @@ modacct(Bank *b, uint acctid, uint *pin, char *name)
 		a->pin = *pin;
 	if(name)
 		strcpy(a->name, name);
+	
+	print("Modified account %ud for bank %ud with\n%α\n", acctid, b->id, a);
 	
 	return nil;
 }
@@ -472,7 +514,7 @@ Transdestroy(Transaction* t)
 void
 Acctdestroy(Account* a)
 {
-	free(a->name);
+	// free(a->name); // TODO ­ leak only when deleting a bank…
 	free(a);
 }
 
