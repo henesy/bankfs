@@ -273,7 +273,7 @@ trans(uint n₀, uint from, uint n₁, uint to, uint amount)
 void
 dump()
 {
-	int fd, dirfd, i, n = 0;
+	int fd, dirfd, i;
 	Biobuf *bp;
 	
 	// Open ./dumps/, create if needed
@@ -320,13 +320,12 @@ dump()
 	Bprint(bp, "%ω\n", masterstats());
 	
 	// Print banks to file -- fmtinstall for β should handle calling other fmt 
-	for(i = 0; i < MAXBANKS && n < stats->nbanks; i++){
+	for(i = 0; i < MAXBANKS; i++){
 		if(banks[i] == nil)
 			continue;
 		
 		// TODO -- notarize bankid in some better manner?
 		Bprint(bp, "bankid=%d\n%β\n", i, banks[i]);
-		n++;
 	}
 
 	// Tear down
