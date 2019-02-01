@@ -73,7 +73,8 @@ If you want to read and write from Linux and can't from the mount, do:
 
 To mount from Plan 9:
 
-	import -z tcp!plan9.postnix.us!3656 banken /n/banks
+	import tcp!bank.isucdc.net!3656 /mnt/bankfs /n/bankfs
+
 ## Testing
 
 Rudimentary tests are contained in the `tests/` directory. 
@@ -93,3 +94,4 @@ Note: at this time, tests do not actually test and are more to make sure nothing
 - [asemfs](https://bitbucket.org/henesy/9intro/src/default/ch14/asemfs/)
 - [ctlfs](http://contrib.9front.org/mischief/sys/src/cmd/proc/src/core/ctlfs.c)
 - [lib9p/ramfs](http://mirror.postnix.us/plan9front/sys/src/lib9p/ramfs.c)
+
