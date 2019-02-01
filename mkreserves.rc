@@ -1,0 +1,10 @@
+#!/bin/rc
+# usage: mkreserves.rc N
+
+mount /srv/bankfs /mnt/bankfs
+echo mkacct 0000 Reserve > /mnt/bankfs/banks/$1/ctl
+
+# make extra accounts
+for(i in `{seq 25}){
+	echo mkacct 1234 `{fortune | awk '{print $1}'} > /mnt/bankfs/banks/$1/ctl
+}

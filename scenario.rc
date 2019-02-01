@@ -1,0 +1,29 @@
+#!/bin/rc
+# Initialize the scenario and everyone's accounts
+chmod a+rw /srv/bankfs
+startbal = 166666
+teams = `{echo team^`{seq 25}}
+
+for(t in $teams){
+	n = `{echo $t | sed 's/team//g'}
+	echo Creating $t with n of $n
+	echo mkbank $t > /mnt/bankfs/ctl
+
+	cmd = `{echo auth/as $t /sys/bankfs/mkreserves.rc $n}
+	echo doing $cmd
+	echo $cmd | rc
+
+	echo trans 0 0 $n 0 $startbal > /mnt/bankfs/ctl
+	
+	for(i in `{seq 25}){
+		echo trans 0 0 $n $i `{rand 1000} > /mnt/bankfs/ctl
+	}
+}
+
+echo Creating team40
+echo mkbank team40 > /mnt/bankfs/ctl
+auth/as team40 /sys/bankfs/mkreserves.rc 26
+echo trans 0 0 26 0 $startbal > /mnt/bankfs/ctl
+for(i in `{seq 25}){
+	echo trans 0 0 26 $i `{rand 1000} > /mnt/bankfs/ctl
+}

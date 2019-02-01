@@ -96,7 +96,9 @@ initbank(char *user)
 	bank->transactions	= trans;
 	bank->stats			= s;
 	bank->accounts		= accts;
-	bank->user			= user;
+	
+	bank->user			= emalloc(BUFSIZE * sizeof(char));
+	strncpy(bank->user, user, BUFSIZE);
 
 	return bank;
 }
@@ -491,6 +493,7 @@ Bankdestroy(Bank *b)
 	Transendestroy(b->transactions, b->stats->ntrans);
 	Acctsdestroy(b->accounts, b->stats->naccts);
 	Statsdestroy(b->stats);
+	free(b->user);
 	free(b);
 }
 
